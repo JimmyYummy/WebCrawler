@@ -3,19 +3,17 @@ package edu.upenn.cis.cis455.model;
 import java.io.Serializable;
 
 public class User implements Serializable {
-    Integer userId;
-    String userName;
-    String password;
+    private String userName;
+    private String password;
+    private String firstName;
+    private String lastName;
     
     
-    public User(Integer userId, String userName, String password) {
-        this.userId = userId;
+    public User(String userName, String password, String firstName, String lastName) {
         this.userName = userName;
         this.password = password;
-    }
-    
-    public Integer getUserId() {
-        return userId;
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
     
     public String getUserName() {
@@ -25,4 +23,12 @@ public class User implements Serializable {
     public String getPassword() {
         return password;
     }
+
+	public String getFirstName() {
+		return firstName;
+	}
+
+	public String getLastName() {
+		return lastName;
+	}
 }

@@ -5,10 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import static spark.Spark.*;
-import edu.upenn.cis.cis455.crawler.handlers.LoginFilter;
+import edu.upenn.cis.cis455.crawler.handlers.*;
 import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
-import edu.upenn.cis.cis455.crawler.handlers.LoginHandler;
 
 public class WebInterface {
     public static void main(String args[]) {
@@ -21,7 +20,6 @@ public class WebInterface {
             try {
                 Files.createDirectory(Paths.get(args[0]));
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -39,8 +37,19 @@ public class WebInterface {
             
         before("/*", "POST", testIfLoggedIn);
         // TODO:  add /register, /logout, /index.html, /, /lookup
-        //post("/register", new RegistrationHandler(database));
+        post("/register", new RegisterHandler(database));
         post("/login", new LoginHandler(database));
+        
+        get("/", new IndexHandler(database));
+        get("/index.html", new IndexHandler(database));
+        
+        get("/logout", (req, resp) -> {
+        	req.session(false).invalidate();
+        	resp.redirect("/");
+        	return "";
+        });
+        get("/lookup", new LookupHandler(database));
+        
         
         awaitInitialization();
     }
