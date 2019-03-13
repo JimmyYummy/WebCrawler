@@ -27,6 +27,8 @@ public class LoginHandler implements Route {
         String pass = req.queryParams("password");
 
         logger.info("Login request for " + user + " and " + pass);
+        try {
+        	
         User userModel = db.getSessionForUser(user, pass);
         if (userModel != null) {
             logger.debug("Logged in!");
@@ -39,6 +41,9 @@ public class LoginHandler implements Route {
         } else {
             logger.debug("Invalid credentials");
             resp.redirect("/login-form-err.html");
+        } } catch (Exception e) {
+        	e.printStackTrace();
+        	throw e;
         }
 
             

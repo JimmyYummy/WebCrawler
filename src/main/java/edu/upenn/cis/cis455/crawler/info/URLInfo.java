@@ -17,7 +17,7 @@ public class URLInfo {
 		
 		if (docURL.startsWith("https://")) {
 		    this.isSecure = true;
-		    docURL.replaceFirst("https:", "http:");
+		    docURL = docURL.replaceFirst("https:", "http:");
 		}
 		
 		if(!docURL.startsWith("http://") || docURL.length() < 8)

@@ -45,7 +45,8 @@ public class StorageInstance implements StorageInterface {
 			DatabaseConfig dbConfig = new DatabaseConfig();
 			dbConfig.setAllowCreate(true);
 			dbConfig.setSortedDuplicates(false);
-			dbConfig.setDeferredWrite(true);
+			dbConfig.setTransactional(true);
+			
 			Database classDb = env.openDatabase(null, "classDb", dbConfig);
 			StoredClassCatalog catalog = new StoredClassCatalog(classDb);
 			TupleBinding<String> keyBinding = TupleBinding.getPrimitiveBinding(String.class);
@@ -87,19 +88,15 @@ public class StorageInstance implements StorageInterface {
 
 	@Override
 	public int addUser(User user) {
-		try {
 		logger.debug("adding user: " + user);
 		if (userMap.containsKey(user.getUserName())) {
 			logger.debug("duplicate username");
 			return 1;
 		} else {
 			userMap.put(user.getUserName(), user);
-			userDB.sync();
+			
 			logger.debug("creation succeeded");
 			return 0;
-		} } catch (Exception e) {
-			e.printStackTrace();
-			throw e;
 		}
 	}
 
