@@ -5,10 +5,16 @@ import spark.Route;
 import spark.Response;
 import spark.HaltException;
 import spark.Session;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import edu.upenn.cis.cis455.model.User;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 
 public class LoginHandler implements Route {
+	private static Logger logger = LogManager.getLogger(LoginHandler.class);
+
     StorageInterface db;
     
     public LoginHandler(StorageInterface db) {
@@ -20,10 +26,10 @@ public class LoginHandler implements Route {
         String user = req.queryParams("username");
         String pass = req.queryParams("password");
 
-        System.err.println("Login request for " + user + " and " + pass);
+        logger.info("Login request for " + user + " and " + pass);
         User userModel = db.getSessionForUser(user, pass);
         if (userModel != null) {
-            System.err.println("Logged in!");
+            logger.debug("Logged in!");
             Session session = req.session();
             
             session.attribute("user", user);
@@ -31,7 +37,7 @@ public class LoginHandler implements Route {
             session.attribute("userModel", userModel);
             resp.redirect("/index.html");
         } else {
-            System.err.println("Invalid credentials");
+            logger.debug("Invalid credentials");
             resp.redirect("/login-form-err.html");
         }
 

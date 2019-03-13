@@ -8,6 +8,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.SortedMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.sleepycat.bind.EntryBinding;
 import com.sleepycat.bind.serial.SerialBinding;
 import com.sleepycat.bind.serial.StoredClassCatalog;
@@ -19,14 +22,15 @@ import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
+import edu.upenn.cis.cis455.crawler.handlers.LoginFilter;
 import edu.upenn.cis.cis455.model.User;
 
 public class StorageInstance implements StorageInterface {
+	private static Logger logger = LogManager.getLogger(StorageInstance.class);
 
 	private Environment env = null;
 	private Database userDB = null;
 	SortedMap<String, User> userMap = null;
-	private AtomicInteger userCount = null;
 
 	public StorageInstance(String directory) {
 
@@ -41,9 +45,9 @@ public class StorageInstance implements StorageInterface {
 			DatabaseConfig dbConfig = new DatabaseConfig();
 			dbConfig.setAllowCreate(true);
 			dbConfig.setSortedDuplicates(false);
-			
-			Database myClassDb = env.openDatabase(null, "classDb", dbConfig);
-			StoredClassCatalog catalog = new StoredClassCatalog(myClassDb);
+			dbConfig.setDeferredWrite(true);
+			Database classDb = env.openDatabase(null, "classDb", dbConfig);
+			StoredClassCatalog catalog = new StoredClassCatalog(classDb);
 			TupleBinding<String> keyBinding = TupleBinding.getPrimitiveBinding(String.class);
 			EntryBinding<User> userBinding = new SerialBinding<User>(catalog, User.class);
 			
@@ -60,20 +64,12 @@ public class StorageInstance implements StorageInterface {
 				env.close();
 			}
 		}
-		userCount = new AtomicInteger((int) userDB.count());
 		System.out.println("instance created");
 	}
 
 	@Override
 	public int getCorpusSize() {
 		// TODO
-		return 0;
-	}
-
-	@Override
-	public int addDocument(String url, String documentContents) {
-		// TODO Auto-generated method stub
-
 		return 0;
 	}
 
@@ -91,17 +87,28 @@ public class StorageInstance implements StorageInterface {
 
 	@Override
 	public int addUser(User user) {
+		try {
+		logger.debug("adding user: " + user);
 		if (userMap.containsKey(user.getUserName())) {
+			logger.debug("duplicate username");
 			return 1;
 		} else {
 			userMap.put(user.getUserName(), user);
+			userDB.sync();
+			logger.debug("creation succeeded");
 			return 0;
+		} } catch (Exception e) {
+			e.printStackTrace();
+			throw e;
 		}
 	}
 
 	@Override
 	public User getSessionForUser(String username, String password) {
-		if (! userMap.containsKey(username)) return null;
+		if (! userMap.containsKey(username)) {
+			logger.debug("user does not exist: " + username);
+			return null;
+		}
 		User user = userMap.get(username);
 		MessageDigest md;
         String pass = null;
@@ -114,8 +121,10 @@ public class StorageInstance implements StorageInterface {
 			halt(500);
 		}
 		if (user.getPassword().equals(pass)) {
+			logger.debug("authenticated: "+ username);
 			return user; 
 		}
+		logger.debug("authentication failed: " + username);
 		return null;
 	}
 
@@ -127,10 +136,26 @@ public class StorageInstance implements StorageInterface {
 
 	@Override
 	public void close() {
+		logger.info("closing the storage db system");
+		if (userDB != null)
 		userDB.close();
-		env.removeDatabase(null, "UserDB");
-		env.cleanLog();
-		env.close();
+		if (env != null) {
+			env.removeDatabase(null, "UserDB");
+			env.cleanLog();
+			env.close();
+		}
+	}
+
+	@Override
+	public String addDocument(String doc) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean putUrl(String url, String docId) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

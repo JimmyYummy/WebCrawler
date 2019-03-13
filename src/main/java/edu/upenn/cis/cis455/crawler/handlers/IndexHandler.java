@@ -4,10 +4,16 @@ import spark.Request;
 import spark.Route;
 import spark.Response;
 import spark.HaltException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import edu.upenn.cis.cis455.model.User;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 
 public class IndexHandler implements Route {
+	private static Logger logger = LogManager.getLogger(Route.class);
+
 	StorageInterface db;
 
 	public IndexHandler(StorageInterface db) {
@@ -17,11 +23,13 @@ public class IndexHandler implements Route {
 	@Override
 	public String handle(Request req, Response resp) throws HaltException {
 		try {
-		User user = (User) req.session().attribute("userModel");
-		resp.header("content-type", "text/html");
-		return "Welcome, " + user.getFirstName() + " " + user.getLastName();
+			logger.info("get request from req" + req);
+			User user = (User) req.session().attribute("userModel");
+			resp.header("content-type", "text/html");
+			return "Welcome, " + user.getFirstName() + " " + user.getLastName();
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.catching(e);
 			throw e;
 		}
 	}

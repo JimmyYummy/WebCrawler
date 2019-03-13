@@ -1,15 +1,16 @@
 package edu.upenn.cis.cis455.crawler.handlers;
 
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
+import static spark.Spark.halt;
+import org.apache.logging.log4j.Logger;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 import spark.Request;
 import spark.Filter;
 import spark.Response;
 
 public class LoginFilter implements Filter {
-	Logger logger = LogManager.getLogger(LoginFilter.class);
+	private static Logger logger = LogManager.getLogger(LoginFilter.class);
 
 	public LoginFilter(StorageInterface db) {
 
@@ -22,25 +23,27 @@ public class LoginFilter implements Filter {
 			logger.info("Request is NOT login/registration");
 			if (req.session(false) == null) {
 //                logger.info
-				System.err.println("Not logged in - redirecting!");
+				logger.debug("Not logged in - redirecting!");
 				response.redirect("/login-form.html");
+				halt();
 			} else {
 //                logger.info
-				System.err.println("Logged in!");
+				logger.debug("Logged in!");
 				req.attribute("user", req.session().attribute("user"));
 			}
 
 		} else {
 //            logger.info
-			System.err.println("Request is LOGIN FORM");
+			logger.debug("Request is LOGIN FORM");
 			if (req.session(false) == null) {
 //              logger.info
-				System.err.println("Not logged in");
+				logger.debug("Not logged in");
 				
 			} else {
 //              logger.info
-				System.err.println("Logged in!");
+				logger.debug("Logged in!");
 				response.redirect("/");
+				halt();
 			}
 		}
 

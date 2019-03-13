@@ -39,6 +39,7 @@ public class URLInfo {
 			filePath = "/";
 		else
 			filePath = docURL.substring(i); //starts with '/'
+		// relative path -> hostNmae and port being null
 		if(address.equals("/") || address.equals(""))
 			return;
 		if(address.indexOf(':') != -1){

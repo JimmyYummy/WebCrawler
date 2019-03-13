@@ -5,6 +5,9 @@ import static spark.Spark.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import spark.Request;
 import spark.Route;
 import spark.Response;
@@ -13,6 +16,7 @@ import edu.upenn.cis.cis455.model.User;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 
 public class RegisterHandler implements Route {
+	private static Logger logger = LogManager.getLogger(RegisterHandler.class);
 	StorageInterface db;
 
 	public RegisterHandler(StorageInterface db) {
@@ -21,6 +25,7 @@ public class RegisterHandler implements Route {
 
 	@Override
 	public String handle(Request req, Response resp) throws HaltException {
+		logger.info("Get register request: " + req);
 		String username = null;
 		String password = null;
 		String firstName = null;
@@ -32,7 +37,7 @@ public class RegisterHandler implements Route {
 		if (username.length() == 0 || password.length() == 0 
 				|| firstName.length() == 0 || lastName.length() == 0)
 			resp.redirect("register-err2.html");
-			System.err.println("Register request for " + username);
+			logger.info("Register request for " + username);
 		MessageDigest md;
 		String pass = null;
 		try {
@@ -41,14 +46,17 @@ public class RegisterHandler implements Route {
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.catching(e);
 			halt(500);
 		}
 		User user = new User(username, pass, firstName, lastName);
 
 		int status = db.addUser(user);
 		if (status == 0) {
+			logger.info("registration success: " + username);
 			resp.redirect("/login-form.html");
 		} else {
+			logger.info("registration failed: " + username);
 			resp.redirect("/register-err.html");
 		}
 

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.apache.logging.log4j.Level;
+
 import static spark.Spark.*;
 import edu.upenn.cis.cis455.crawler.handlers.*;
 import edu.upenn.cis.cis455.storage.StorageFactory;
@@ -11,6 +13,8 @@ import edu.upenn.cis.cis455.storage.StorageInterface;
 
 public class WebInterface {
     public static void main(String args[]) {
+        org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.DEBUG);
+
         if (args.length < 1 || args.length > 2) {
             System.out.println("Syntax: WebInterface {path} {root}");
             System.exit(1);
@@ -35,7 +39,7 @@ public class WebInterface {
         }
 
             
-        before("/*", "POST", testIfLoggedIn);
+        before("/*", testIfLoggedIn);
         // TODO:  add /register, /logout, /index.html, /, /lookup
         post("/register", new RegisterHandler(database));
         post("/login", new LoginHandler(database));
