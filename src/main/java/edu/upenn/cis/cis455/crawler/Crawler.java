@@ -6,10 +6,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -23,12 +26,15 @@ public class Crawler implements CrawlMaster {
 
 	private int maxSize;
 	private int maxCount;
-	private int docCount;
+	private AtomicInteger docCount;
 	private StorageInterface db;
 	private BlockingQueue<String> q;
 	private Collection<CrawlerWorker> pool;
 	private int exitedWorkerCount;
-	private int workingWorkers;
+	private AtomicInteger workingWorkers;
+	
+	private Set<String> signatures;
+	private Map<String, RobotResolver> robotMap;
 
 	public Crawler(String startUrl, StorageInterface db, int size, int count) {
 		// TODO: initialize
@@ -47,8 +53,12 @@ public class Crawler implements CrawlMaster {
 		}
 		maxSize = size;
 		maxCount = count;
-		docCount = 0;
-		workingWorkers = 0;
+		docCount = new AtomicInteger(0);
+		workingWorkers = new AtomicInteger(0);
+		
+		robotMap = new HashMap<>();
+		signatures = new HashSet<>();
+		
 	}
 
 	///// TODO: you'll need to flesh all of this out. You'll need to build a thread
@@ -69,7 +79,16 @@ public class Crawler implements CrawlMaster {
 	 * robots, etc.
 	 */ 
 	public boolean isOKtoCrawl(String site, int port, boolean isSecure) {
-		return true;
+		
+		String url = CrawlerUtils.genURL(site, port, isSecure);
+		if (! robotMap.containsKey(url)) {
+			synchronized (this) {
+				if (! robotMap.containsKey(url)) {
+					robotMap.put(url, new RobotResolver(url, isSecure));
+				}
+			}
+		}
+		return robotMap.get(url).isWebsiteOK();
 	}
 
 	/**
@@ -77,8 +96,9 @@ public class Crawler implements CrawlMaster {
 	 */
 	// when to wait? 
 	// 1. the robot.txt's delay has not been reached 2. workingWorkers + current docCount >= maxCount
-	public boolean deferCrawl(String site) {
-		return false;
+	public boolean deferCrawl(String url) {
+		if (workingWorkers.get() + docCount.get() >= maxCount) return true;
+		return robotMap.get(url).shouldDefer();
 	}
 
 	/**
@@ -87,31 +107,36 @@ public class Crawler implements CrawlMaster {
 	 */
 	// FETCH
 	public boolean isOKtoParse(URLInfo url) {
-		return true;
+		String urlName = CrawlerUtils.genURL(url.getHostName(), url.getPortNo(), url.isSecure());
+		return robotMap.get(urlName).isOKtoParse(url.getFilePath());
 	}
 
 	/**
 	 * Returns true if the document content looks worthy of indexing, eg that it
 	 * doesn't have a known signature
 	 */
-	public boolean isIndexable(String content) {
-		return true;
+	public synchronized boolean isIndexable(String content) {
+		return ! signatures.contains(CrawlerUtils.gentMD5Sign(content));
 	}
+	
+	public synchronized void addSignature(String signature) {
+		signatures.add(signature);
+	} 
 	
 
 	/**
 	 * We've indexed another document
 	 */
 	public synchronized void incCount() {
-		docCount++;
+		docCount.incrementAndGet();
 	}
 
 	/**
 	 * Workers can poll this to see if they should exit, ie the crawl is done
 	 */
 	public synchronized boolean isDone() {
-		if (docCount == maxCount) return true;
-		if (q.isEmpty() && workingWorkers == 0) return true;
+		if (docCount.get() >= maxCount) return true;
+		if (q.isEmpty() && workingWorkers.get() == 0) return true;
 		return false;
 	}
 
@@ -119,8 +144,8 @@ public class Crawler implements CrawlMaster {
 	 * Workers should notify when they are processing an URL
 	 */
 	public synchronized void setWorking(boolean working) {
-		if (working) workingWorkers++;
-		else workingWorkers--;
+		if (working) workingWorkers.incrementAndGet();
+		else workingWorkers.decrementAndGet();
 	}
 
 	/**
@@ -134,6 +159,7 @@ public class Crawler implements CrawlMaster {
 	public synchronized boolean shutDownMainThread() {
 		return exitedWorkerCount == NUM_WORKERS;
 	}
+	
 
 	/**
 	 * Main program: init database, start crawler, wait for it to notify that it is
@@ -171,5 +197,4 @@ public class Crawler implements CrawlMaster {
 
 		System.out.println("Done crawling!");
 	}
-
 }
