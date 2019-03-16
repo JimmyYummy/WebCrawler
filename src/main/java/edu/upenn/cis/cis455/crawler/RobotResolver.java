@@ -23,6 +23,7 @@ public class RobotResolver {
 	private Collection<String> generalDisallows;
 	private Collection<String> specificAllows;
 	private Collection<String> specificDisallows;
+	private Collection<String> visitedPaths;
 	private boolean websiteOK;
 	private long lastVisit;
 
@@ -31,6 +32,7 @@ public class RobotResolver {
 		generalDisallows = new HashSet<>();
 		specificAllows = new HashSet<>();
 		specificDisallows = new HashSet<>();
+		visitedPaths = new HashSet<>();
 		try {
 			URL url = new URL(urlStr + "/robot.txt");
 			InputStream inputStream = null;
@@ -116,6 +118,7 @@ public class RobotResolver {
 	public boolean isOKtoParse(String filePath) {
 		if (! websiteOK) return false;
 		String path = Paths.get(filePath).normalize().toString();
+		if (! visitedPaths.add(path)) return false;
 		int speRank = isAllowed(specificAllows, specificDisallows, path);
 		if (speRank == 1) return true;
 		else if (speRank == -1) return false;

@@ -1,5 +1,7 @@
 package edu.upenn.cis.cis455.storage;
 
+import edu.upenn.cis.cis455.crawler.info.URLInfo;
+import edu.upenn.cis.cis455.model.URLDetail;
 import edu.upenn.cis.cis455.model.User;
 
 public interface StorageInterface {
@@ -46,5 +48,12 @@ public interface StorageInterface {
 	 */
 	public void close();
 
+	public URLDetail getUrlDetial(URLInfo url);
+
+	public void addUrlDetail(URLDetail urlDetail);
+
+	public void decreDocCount(String docId);
+
+	public String isHtmlDoc(String urlStr);
 	
 }

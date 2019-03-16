@@ -48,7 +48,7 @@ public class Crawler implements CrawlMaster {
 		}
 		pool = new ArrayList<>();
 		for (int i = 0; i < NUM_WORKERS; i++) {
-			CrawlerWorker worker = new CrawlerWorker();
+			CrawlerWorker worker = new CrawlerWorker(q, this, db);
 			pool.add(worker);
 		}
 		maxSize = size;
@@ -57,8 +57,7 @@ public class Crawler implements CrawlMaster {
 		workingWorkers = new AtomicInteger(0);
 		
 		robotMap = new HashMap<>();
-		signatures = new HashSet<>();
-		
+		signatures = new HashSet<>();		
 	}
 
 	///// TODO: you'll need to flesh all of this out. You'll need to build a thread
@@ -111,18 +110,24 @@ public class Crawler implements CrawlMaster {
 		return robotMap.get(urlName).isOKtoParse(url.getFilePath());
 	}
 
+	public boolean isQualifiedDoc(int length, String type) {
+		if (length > maxSize) return false;
+		if (type == null) return false;
+		type = type.toLowerCase();
+		if ("text/html".equals(type.toLowerCase())) return true;
+		if ("text/xml".equals(type.toLowerCase())) return true;
+		if ("application/xml".equals(type.toLowerCase())) return true;
+		if (type.endsWith("+xml")) return true;
+		return false;
+	}
+	
 	/**
 	 * Returns true if the document content looks worthy of indexing, eg that it
 	 * doesn't have a known signature
 	 */
 	public synchronized boolean isIndexable(String content) {
-		return ! signatures.contains(CrawlerUtils.gentMD5Sign(content));
+		return signatures.add(CrawlerUtils.gentMD5Sign(content));
 	}
-	
-	public synchronized void addSignature(String signature) {
-		signatures.add(signature);
-	} 
-	
 
 	/**
 	 * We've indexed another document
@@ -194,7 +199,14 @@ public class Crawler implements CrawlMaster {
 			}
 
 		// TODO: final shutdown
-
+		for (CrawlerWorker worker : crawler.pool) {
+			try {
+				worker.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		System.out.println("Done crawling!");
 	}
 }

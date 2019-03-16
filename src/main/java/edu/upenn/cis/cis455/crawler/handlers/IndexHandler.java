@@ -26,6 +26,7 @@ public class IndexHandler implements Route {
 			logger.info("get request from req" + req);
 			User user = (User) req.session().attribute("userModel");
 			resp.header("content-type", "text/html");
+			//TODO:
 			return "Welcome, " + user.getFirstName() + " " + user.getLastName();
 		} catch (Exception e) {
 			e.printStackTrace();

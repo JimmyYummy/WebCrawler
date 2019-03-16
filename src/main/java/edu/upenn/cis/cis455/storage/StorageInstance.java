@@ -23,6 +23,8 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
 import edu.upenn.cis.cis455.crawler.handlers.LoginFilter;
+import edu.upenn.cis.cis455.crawler.info.URLInfo;
+import edu.upenn.cis.cis455.model.URLDetail;
 import edu.upenn.cis.cis455.model.User;
 
 public class StorageInstance implements StorageInterface {
@@ -153,6 +155,12 @@ public class StorageInstance implements StorageInterface {
 	public boolean putUrl(String url, String docId) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public URLDetail getUrlDetial(URLInfo url) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
