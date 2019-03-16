@@ -33,6 +33,7 @@ public class LoginHandler implements Route {
         if (userModel != null) {
             logger.debug("Logged in!");
             Session session = req.session();
+            session.maxInactiveInterval(300);
             
             session.attribute("user", user);
             session.attribute("password", pass);

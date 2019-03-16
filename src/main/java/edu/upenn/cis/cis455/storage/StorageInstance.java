@@ -70,23 +70,6 @@ public class StorageInstance implements StorageInterface {
 		System.out.println("instance created");
 	}
 
-	@Override
-	public int getCorpusSize() {
-		// TODO
-		return 0;
-	}
-
-	@Override
-	public int getLexiconSize() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	public int addOrGetKeywordId(String keyword) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 
 	@Override
 	public int addUser(User user) {
@@ -127,11 +110,6 @@ public class StorageInstance implements StorageInterface {
 		return null;
 	}
 
-	@Override
-	public String getDocument(String url) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
 	public void close() {
@@ -145,11 +123,41 @@ public class StorageInstance implements StorageInterface {
 		}
 	}
 
+
+	@Override
+	public int getCorpusSize() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
 	@Override
 	public String addDocument(String doc) {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+
+	@Override
+	public int getLexiconSize() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+	@Override
+	public int addOrGetKeywordId(String keyword) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+	@Override
+	public String getDocument(String url) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 	@Override
 	public boolean putUrl(String url, String docId) {
@@ -157,10 +165,33 @@ public class StorageInstance implements StorageInterface {
 		return false;
 	}
 
+
 	@Override
 	public URLDetail getUrlDetial(URLInfo url) {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+
+	@Override
+	public void addUrlDetail(URLDetail urlDetail) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void decreDocCount(String docId) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public String isHtmlDoc(String urlStr) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 }

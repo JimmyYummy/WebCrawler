@@ -83,7 +83,7 @@ public class Crawler implements CrawlMaster {
 		if (! robotMap.containsKey(url)) {
 			synchronized (this) {
 				if (! robotMap.containsKey(url)) {
-					robotMap.put(url, new RobotResolver(url, isSecure));
+					robotMap.put(url, new RobotResolver(url));
 				}
 			}
 		}
