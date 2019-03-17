@@ -13,8 +13,9 @@ public interface StorageInterface {
 	
 	/**
 	 * Add a new document, getting its ID
+	 * @param string 
 	 */
-	public String addDocument(String doc);
+	public String addDocument(String doc, String string);
 	
 	/**
 	 * How many keywords so far?
@@ -40,9 +41,7 @@ public interface StorageInterface {
 	 * Retrieves a document's contents by URL
 	 */
 	public String getDocument(String url);
-	
-	public boolean putUrl(String url, String docId);
-	
+		
 	/**
 	 * Shuts down / flushes / closes the storage system
 	 */
@@ -52,8 +51,10 @@ public interface StorageInterface {
 
 	public void addUrlDetail(URLDetail urlDetail);
 
-	public void decreDocCount(String docId);
+	public void decreUrlCount(String docId);
 
-	public String isHtmlDoc(String urlStr);
+	public boolean isHtmlDoc(String urlStr);
+	
+	public String getDocType(String url);
 	
 }

@@ -74,7 +74,7 @@ public class CrawlerWorker extends Thread {
 				// if status == NOT_MODIFIED -> skip to fetching doc
 				if (statusCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
 					doc = db.getDocument(urlStr);
-					doc = db.isHtmlDoc(urlStr);
+					isHtml = db.isHtmlDoc(urlStr);
 				} else if (statusCode == HttpURLConnection.HTTP_MOVED_PERM
 						|| statusCode == HttpURLConnection.HTTP_MOVED_TEMP) {
 					// if status == 301/302 put the new link in the queue and quit
@@ -95,13 +95,13 @@ public class CrawlerWorker extends Thread {
 					// get doc
 					doc = readContent(conn);
 					isHtml = conn.getContentType().equals("text/html");
-					// save doc
-					String docId = db.addDocument(doc);
-					// change UrlDetail
+					// save doc / (or just increment count)
+					String docId = db.addDocument(doc, conn.getContentType());
+					// add or change UrlDetail
 					db.addUrlDetail(new URLDetail(urlStr, docId, conn.getLastModified()));
 					// remove old doc if necessary
 					if (detail != null) {
-						db.decreDocCount(detail.getDocId());
+						db.decreUrlCount(detail.getDocId());
 					}
 				} else {
 					// any other status code -> quit
@@ -151,16 +151,12 @@ public class CrawlerWorker extends Thread {
 			halt(500);
 		}
 		try {
-			if (isSecure) {
-				HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-				conn.setRequestMethod(method);
-				return conn;
 
-			} else {
-				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-				conn.setRequestMethod(method);
-				return conn;
-			}
+			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod(method);
+			conn.setRequestProperty("User-Agent", "cis455crawler");
+			return conn;
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -3,14 +3,14 @@ package edu.upenn.cis.cis455.model;
 public class DBDocument {
 	
 	private String docId;
-	private int linkedDocs;
+	private int linkedUrls;
 	private String content;
 	private String type;
 	
-	public DBDocument(String docId, int linkedDocs, String content, String type) {
+	public DBDocument(String docId, int linkedUrls, String content, String type) {
 		super();
 		this.docId = docId;
-		this.linkedDocs = linkedDocs;
+		this.linkedUrls = linkedUrls;
 		this.content = content;
 		if (type.toLowerCase().endsWith("html")) this.type = "html";
 		else if (type.toLowerCase().endsWith("xml")) this.type = "xml";
@@ -27,8 +27,8 @@ public class DBDocument {
 	/**
 	 * @return the linkedDocs
 	 */
-	public int getLinkedDocs() {
-		return linkedDocs;
+	public int getLinkedUrls() {
+		return linkedUrls;
 	}
 
 	/**

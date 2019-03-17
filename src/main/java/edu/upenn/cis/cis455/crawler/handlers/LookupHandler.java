@@ -31,7 +31,12 @@ public class LookupHandler implements Route {
 		}
 		if (url == null) halt(200, "no valid url");
 		logger.info("lookup request from " + req  + "on " + url);
-		System.err.println("Lookup request for " + url);
+		String doc = db.getDocument(url);
+		if (doc == null) {
+			halt(404);
+		}
+		String docType = db.getDocType(url);
+		resp.type(docType);
 		return db.getDocument(url);
 	}
 }

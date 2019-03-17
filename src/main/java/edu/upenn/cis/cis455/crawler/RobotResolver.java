@@ -9,15 +9,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import edu.upenn.cis.cis455.crawler.handlers.LoginHandler;
 
 public class RobotResolver {
 
@@ -83,6 +80,7 @@ public class RobotResolver {
 	private InputStream getInputStream(URL url) throws IOException {
 		InputStream inputStream = null;
 		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestProperty("User-Agent", "cis455crawler");
 		int statusCode = conn.getResponseCode();
 		if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
 			logger.info("robots.txt not found, return");
@@ -101,7 +99,7 @@ public class RobotResolver {
 	}
 
 	private void fillInPattern(String txt, Collection<String> allows, Collection<String> disallows, String name) {
-		String[] strs = txt.split("User-agent:");
+		String[] strs = txt.split("(?i)user-agent:");
 		for (int i = 0; i < strs.length; i++) {
 			strs[i] = strs[i].trim();
 		}
@@ -141,7 +139,9 @@ public class RobotResolver {
 	public synchronized boolean shouldDefer() {
 		if (!websiteOK)
 			return true;
-		return Instant.now().getEpochSecond() - lastVisit <= delay;
+		if (Instant.now().getEpochSecond() - lastVisit <= delay) return true;
+		else lastVisit = Instant.now().getEpochSecond();
+		return false;
 	}
 
 	public boolean isOKtoParse(String filePath) {
