@@ -12,7 +12,6 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -21,30 +20,26 @@ public class RobotResolver {
 	private static Logger logger = LogManager.getLogger(RobotResolver.class);
 
 	private int delay;
-	private Collection<String> generalAllows;
-	private Collection<String> generalDisallows;
-	private Collection<String> specificAllows;
-	private Collection<String> specificDisallows;
+	private Collection<String> allows;
+	private Collection<String> disallows;
 	private Collection<String> visitedPaths;
 	private boolean websiteOK;
 	private long lastVisit;
 
 	public RobotResolver(String urlStr) {
-		logger.info("Creating new robots.txt resolver on url:" + urlStr);
-		generalAllows = new HashSet<>();
-		generalDisallows = new HashSet<>();
-		specificAllows = new HashSet<>();
-		specificDisallows = new HashSet<>();
+		logger.debug("Creating new robots.txt resolver on url:" + urlStr);
+		allows = new HashSet<>();
+		disallows = new HashSet<>();
 		visitedPaths = new HashSet<>();
 		try {
-			logger.info("polling the robots.txt on url: " + urlStr);
+			logger.debug("polling the robots.txt on url: " + urlStr);
 			URL url = new URL(urlStr + "/robots.txt");
 			InputStream inputStream = null;
 			inputStream = getInputStream(url);
 
 			// set the website being not working is code is not 404 or 200
 			if (inputStream == null) {
-				logger.info("Error while parsing the robots.txt, return.");
+				logger.debug("Error while parsing the robots.txt, return.");
 				return;
 			}
 
@@ -61,13 +56,14 @@ public class RobotResolver {
 			// print result
 			String txt = response.toString();
 			logger.debug("Received the robots.txt: \n" + txt);
-			fillInPattern(txt, generalAllows, generalDisallows, "*");
-			fillInPattern(txt, specificAllows, specificDisallows, "cis455crawler");
+			if (fillInPattern(txt, allows, disallows, "cis455crawler")) {
+				fillInPattern(txt, allows, disallows, "*");
+			}
 			websiteOK = true;
 			lastVisit = Instant.now().getEpochSecond();
-			System.err.println(generalAllows);
-			System.err.println(generalDisallows);
-			logger.info("created robot resolver: " + urlStr);
+			System.err.println(allows);
+			System.err.println(disallows);
+			logger.debug("created robot resolver: " + urlStr);
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -83,11 +79,11 @@ public class RobotResolver {
 		conn.setRequestProperty("User-Agent", "cis455crawler");
 		int statusCode = conn.getResponseCode();
 		if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
-			logger.info("robots.txt not found, return");
+			logger.debug("robots.txt not found, return");
 			websiteOK = true;
 			return null;
 		} else if (statusCode == 301 || statusCode == 302) {
-			logger.info("Redirecting the robots.txt url");
+			logger.debug("Redirecting the robots.txt url");
 			return getInputStream(new URL(conn.getHeaderField("Location")));
 		} else if (statusCode == HttpURLConnection.HTTP_OK) { // success
 			inputStream = conn.getInputStream();
@@ -98,7 +94,7 @@ public class RobotResolver {
 		return inputStream;
 	}
 
-	private void fillInPattern(String txt, Collection<String> allows, Collection<String> disallows, String name) {
+	private boolean fillInPattern(String txt, Collection<String> allows, Collection<String> disallows, String name) {
 		String[] strs = txt.split("(?i)user-agent:");
 		for (int i = 0; i < strs.length; i++) {
 			strs[i] = strs[i].trim();
@@ -111,9 +107,10 @@ public class RobotResolver {
 						continue;
 					}
 					String[] pair = line.split(":");
+					if (pair.length != 2) continue;
 					String key = pair[0].trim().toLowerCase();
 					String val = pair[1].trim();
-					if (key.equals("delay")) {
+					if (key.equals("crawl-delay")) {
 						delay = Integer.parseInt(val);
 					} else if (key.equals("allow")) {
 						String path = Paths.get(val).normalize().toString();
@@ -127,9 +124,10 @@ public class RobotResolver {
 						disallows.add(path);
 					}
 				}
+				return true;
 			}
 		}
-
+		return false;
 	}
 
 	public boolean isWebsiteOK() {
@@ -150,12 +148,8 @@ public class RobotResolver {
 		String path = Paths.get(filePath).normalize().toString();
 		if (!visitedPaths.add(path))
 			return false;
-		int speRank = isAllowed(specificAllows, specificDisallows, path);
-		if (speRank == 1)
-			return true;
-		else if (speRank == -1)
-			return false;
-		return isAllowed(generalAllows, generalDisallows, path) >= 0;
+		int speRank = isAllowed(allows, disallows, path);
+		return speRank >= 0;
 	}
 
 	// allowed 1 / disallowed -1 / unspecified 0
@@ -201,8 +195,8 @@ public class RobotResolver {
 		return checkPathMatch(idx1 + 1, idx2 + 1, path1, path2);
 	}
 
-	public static void main(String[] args) {
-		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.DEBUG);
-		RobotResolver r = new RobotResolver("https://google.com");
-	}
+//	public static void main(String[] args) {
+//		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.DEBUG);
+//		RobotResolver r = new RobotResolver("https://google.com");
+//	}
 }

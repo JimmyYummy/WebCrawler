@@ -1,32 +1,28 @@
 package edu.upenn.cis.cis455.crawler;
 
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.net.ssl.HttpsURLConnection;
+import org.apache.logging.log4j.Level;
 
-import edu.upenn.cis.cis455.crawler.info.RobotsTxtInfo;
 import edu.upenn.cis.cis455.crawler.info.URLInfo;
 import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 
 public class Crawler implements CrawlMaster {
-	static final int NUM_WORKERS = 10;
+	static final int NUM_WORKERS = 1;
 
 	private int maxSize;
 	private int maxCount;
 	private AtomicInteger docCount;
+	@SuppressWarnings("unused")
 	private StorageInterface db;
 	private BlockingQueue<String> q;
 	private Collection<CrawlerWorker> pool;
@@ -54,7 +50,7 @@ public class Crawler implements CrawlMaster {
 		maxSize = size;
 		maxCount = count;
 		docCount = new AtomicInteger(0);
-		workingWorkers = new AtomicInteger(0);
+		workingWorkers = new AtomicInteger(NUM_WORKERS);
 		
 		robotMap = new HashMap<>();
 		signatures = new HashSet<>();		
@@ -141,7 +137,7 @@ public class Crawler implements CrawlMaster {
 	 */
 	public synchronized boolean isDone() {
 		if (docCount.get() >= maxCount) return true;
-		if (q.isEmpty() && workingWorkers.get() == 0) return true;
+		if (q.isEmpty() && workingWorkers.get() <= 0) return true;
 		return false;
 	}
 
@@ -171,6 +167,7 @@ public class Crawler implements CrawlMaster {
 	 * done, then close.
 	 */
 	public static void main(String args[]) {
+		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.DEBUG);
 		if (args.length < 3 || args.length > 5) {
 			System.out.println(
 					"Usage: Crawler {start URL} {database environment path} {max doc size in MB} {number of files to index}");

@@ -6,7 +6,6 @@ import java.io.File;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.SortedMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,7 +22,6 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 
 import edu.upenn.cis.cis455.crawler.CrawlerUtils;
-import edu.upenn.cis.cis455.crawler.handlers.LoginFilter;
 import edu.upenn.cis.cis455.crawler.info.URLInfo;
 import edu.upenn.cis.cis455.model.DBDocument;
 import edu.upenn.cis.cis455.model.URLDetail;
@@ -133,7 +131,7 @@ public class StorageInstance implements StorageInterface {
 
 	@Override
 	public void close() {
-		logger.info("closing the storage db system");
+		logger.debug("closing the storage db system");
 		if (userDB != null)
 			userDB.close();
 		if (env != null) {

@@ -23,7 +23,7 @@ public class IndexHandler implements Route {
 	@Override
 	public String handle(Request req, Response resp) throws HaltException {
 		try {
-			logger.info("get request from req" + req);
+			logger.debug("get request from req" + req);
 			User user = (User) req.session().attribute("userModel");
 			resp.header("content-type", "text/html");
 			//TODO:

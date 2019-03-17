@@ -25,7 +25,7 @@ public class RegisterHandler implements Route {
 
 	@Override
 	public String handle(Request req, Response resp) throws HaltException {
-		logger.info("Get register request: " + req);
+		logger.debug("Get register request: " + req);
 		String username = null;
 		String password = null;
 		String firstName = null;
@@ -37,7 +37,7 @@ public class RegisterHandler implements Route {
 		if (username.length() == 0 || password.length() == 0 
 				|| firstName.length() == 0 || lastName.length() == 0)
 			resp.redirect("register-err2.html");
-			logger.info("Register request for " + username);
+			logger.debug("Register request for " + username);
 		MessageDigest md;
 		String pass = null;
 		try {
@@ -53,10 +53,10 @@ public class RegisterHandler implements Route {
 
 		int status = db.addUser(user);
 		if (status == 0) {
-			logger.info("registration success: " + username);
+			logger.debug("registration success: " + username);
 			resp.redirect("/login-form.html");
 		} else {
-			logger.info("registration failed: " + username);
+			logger.debug("registration failed: " + username);
 			resp.redirect("/register-err.html");
 		}
 

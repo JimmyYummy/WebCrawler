@@ -20,27 +20,27 @@ public class LoginFilter implements Filter {
 	public void handle(Request req, Response response) throws Exception {
 		if (!req.pathInfo().equals("/login-form.html") && !req.pathInfo().equals("/login")
 				&& !req.pathInfo().equals("/register") && !req.pathInfo().equals("/register.html")) {
-			logger.info("Request is NOT login/registration");
+			logger.debug("Request is NOT login/registration");
 			if (req.session(false) == null) {
-//                logger.info
+//                logger.debug
 				logger.debug("Not logged in - redirecting!");
 				response.redirect("/login-form.html");
 				halt();
 			} else {
-//                logger.info
+//                logger.debug
 				logger.debug("Logged in!");
 				req.attribute("user", req.session().attribute("user"));
 			}
 
 		} else {
-//            logger.info
+//            logger.debug
 			logger.debug("Request is LOGIN FORM");
 			if (req.session(false) == null) {
-//              logger.info
+//              logger.debug
 				logger.debug("Not logged in");
 				
 			} else {
-//              logger.info
+//              logger.debug
 				logger.debug("Logged in!");
 				response.redirect("/");
 				halt();

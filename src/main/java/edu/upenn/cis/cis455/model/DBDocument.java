@@ -1,6 +1,8 @@
 package edu.upenn.cis.cis455.model;
 
-public class DBDocument {
+import java.io.Serializable;
+
+public class DBDocument implements Serializable {
 	
 	private String docId;
 	private int linkedUrls;

@@ -1,29 +1,29 @@
 package edu.upenn.cis.cis455.crawler;
 
+import static spark.Spark.halt;
+
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
-import java.time.Instant;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.HttpsURLConnection;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
-import static spark.Spark.halt;
 import edu.upenn.cis.cis455.crawler.info.URLInfo;
 import edu.upenn.cis.cis455.model.URLDetail;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 
 public class CrawlerWorker extends Thread {
+	private static Logger logger = LogManager.getLogger(CrawlerWorker.class);
+	
 	private BlockingQueue<String> q;
 	private Crawler c;
 	private StorageInterface db;
@@ -43,7 +43,18 @@ public class CrawlerWorker extends Thread {
 			if (c.isDone())
 				break;
 			// get the url
-			String urlStr = q.poll();
+			String urlStr = null;
+			try {
+				while (true) {
+					System.out.println("xxxx");
+					urlStr = q.poll(5, TimeUnit.MILLISECONDS);
+					if (urlStr != null) break;
+					if (c.isDone()) break;
+				}
+			} catch (InterruptedException e1) {
+				logger.catching(e1);
+			}
+			if (urlStr == null) break;
 			setWorking();
 			URLInfo url = new URLInfo(urlStr);
 			// check website
@@ -73,22 +84,28 @@ public class CrawlerWorker extends Thread {
 				int statusCode = conn.getResponseCode();
 				// if status == NOT_MODIFIED -> skip to fetching doc
 				if (statusCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
+					logger.info(urlStr + ": Not modified");
 					doc = db.getDocument(urlStr);
 					isHtml = db.isHtmlDoc(urlStr);
 				} else if (statusCode == HttpURLConnection.HTTP_MOVED_PERM
 						|| statusCode == HttpURLConnection.HTTP_MOVED_TEMP) {
 					// if status == 301/302 put the new link in the queue and quit
 					// TODO: take care of different types of URLs
-//					q.offer(conn.getHeaderField("Location"));
+//					q.put(conn.getHeaderField("Location"));
+					conn.disconnect();
 					continue;
 				} else if (statusCode == HttpURLConnection.HTTP_ACCEPTED) {
 					// if status == 200 check size and type
-					if (!c.isQualifiedDoc(conn.getContentLength(), conn.getContentType()))
+					if (!c.isQualifiedDoc(conn.getContentLength(), conn.getContentType())) {
+						conn.disconnect();
 						continue;
+					}
 					// if qualified -> send GET request
 					conn.disconnect();
 					conn = createConnection(urlStr, url.isSecure(), "GET");
+					logger.info(urlStr + ": Downloading");
 					if (!(conn.getResponseCode() == HttpURLConnection.HTTP_ACCEPTED)) {
+						System.err.println(conn.getResponseCode());
 						System.err.println("Unexpected Connection Failure when sending GET request: " + urlStr);
 					}
 					// if 200
@@ -105,9 +122,12 @@ public class CrawlerWorker extends Thread {
 					}
 				} else {
 					// any other status code -> quit
+					System.err.println(conn.getResponseCode());
 					System.err.println("Unexpected Connection Failure when sending HEAD request: " + urlStr);
+					conn.disconnect();
 					continue;
 				}
+				conn.disconnect();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -121,7 +141,12 @@ public class CrawlerWorker extends Thread {
 			htmlDoc.setBaseUri(CrawlerUtils.genURL(url.getHostName(), url.getPortNo(), url.isSecure()));
 			for (Element ele : htmlDoc.getElementsByAttribute("href")) {
 				String nextUrlStr = ele.absUrl("href");
-				q.offer(nextUrlStr);
+				try {
+					q.put(nextUrlStr);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		c.notifyThreadExited();
@@ -145,7 +170,7 @@ public class CrawlerWorker extends Thread {
 
 		URL url = null;
 		try {
-			url = new URL(urlStr + "/robot.txt");
+			url = new URL(urlStr);
 		} catch (MalformedURLException e1) {
 			e1.printStackTrace();
 			halt(500);

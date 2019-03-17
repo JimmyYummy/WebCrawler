@@ -23,14 +23,14 @@ public class LookupHandler implements Route {
 	@Override
 	public String handle(Request req, Response resp) throws HaltException {
 		String url = null;
-		logger.info("lookup request from " + req);
+		logger.debug("lookup request from " + req);
 		try {
 			url = req.queryParams("url");
 		} catch (Exception e) {
 			halt(400);
 		}
 		if (url == null) halt(200, "no valid url");
-		logger.info("lookup request from " + req  + "on " + url);
+		logger.debug("lookup request from " + req  + "on " + url);
 		String doc = db.getDocument(url);
 		if (doc == null) {
 			halt(404);
