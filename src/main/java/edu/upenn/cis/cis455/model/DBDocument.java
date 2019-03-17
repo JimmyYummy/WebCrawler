@@ -14,9 +14,7 @@ public class DBDocument implements Serializable {
 		this.docId = docId;
 		this.linkedUrls = linkedUrls;
 		this.content = content;
-		if (type.toLowerCase().endsWith("html")) this.type = "html";
-		else if (type.toLowerCase().endsWith("xml")) this.type = "xml";
-		else throw new IllegalArgumentException("unsuppored document type");
+		this.type = type;
 	}
 
 	/**

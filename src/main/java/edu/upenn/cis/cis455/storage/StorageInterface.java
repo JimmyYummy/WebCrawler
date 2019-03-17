@@ -56,5 +56,9 @@ public interface StorageInterface {
 	public boolean isHtmlDoc(String urlStr);
 	
 	public String getDocType(String url);
+
+	public boolean hasDocument(String doc);
+
+	public int docLinkCount(String docId);
 	
 }

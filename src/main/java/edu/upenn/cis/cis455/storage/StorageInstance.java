@@ -224,21 +224,40 @@ public class StorageInstance implements StorageInterface {
 			}
 		}
 	}
-
-	@Override
-	public URLDetail getUrlDetial(URLInfo url) {
-		synchronized (urlMap) {
-			String urlStr = CrawlerUtils.genURL(url.getHostName(), url.getPortNo(), url.isSecure(), url.getFilePath());
-			return urlMap.getOrDefault(urlStr, null);
-		}
-	}
-
+	
 	@Override
 	public void addUrlDetail(URLDetail urlDetail) {
 		synchronized (urlMap) {
+			System.out.println("saving: " + urlDetail.getUrl());
 			urlMap.put(urlDetail.getUrl(), urlDetail);
 		}
 
 	}
 
+	@Override
+	public URLDetail getUrlDetial(URLInfo url) {
+		synchronized (urlMap) {
+			String urlStr = CrawlerUtils.genURL(url.getHostName(), url.getPortNo(), url.isSecure(), url.getFilePath());
+			System.out.println("checking: " + urlStr);
+			return urlMap.getOrDefault(urlStr, null);
+		}
+	}
+
+	@Override
+	public boolean hasDocument(String doc) {
+		synchronized (docMap) {
+			String key = CrawlerUtils.gentMD5Sign(doc);
+			return docMap.containsKey(key);
+		}
+	}
+	
+	@Override
+	public int docLinkCount(String docId) {
+		synchronized (docMap) {
+			if (! docMap.containsKey(docId)) {
+				return 0;
+			}
+			return docMap.get(docId).getLinkedUrls();
+		}
+	}
 }

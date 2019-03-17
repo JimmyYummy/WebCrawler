@@ -74,7 +74,6 @@ public class Crawler implements CrawlMaster {
 	 * robots, etc.
 	 */ 
 	public boolean isOKtoCrawl(String site, int port, boolean isSecure) {
-		
 		String url = CrawlerUtils.genURL(site, port, isSecure);
 		if (! robotMap.containsKey(url)) {
 			synchronized (this) {
@@ -92,7 +91,7 @@ public class Crawler implements CrawlMaster {
 	// when to wait? 
 	// 1. the robot.txt's delay has not been reached 2. workingWorkers + current docCount >= maxCount
 	public boolean deferCrawl(String url) {
-		if (workingWorkers.get() + docCount.get() >= maxCount) return true;
+		if (workingWorkers.get() + docCount.get() > maxCount) return true;
 		return robotMap.get(url).shouldDefer();
 	}
 
@@ -107,13 +106,20 @@ public class Crawler implements CrawlMaster {
 	}
 
 	public boolean isQualifiedDoc(int length, String type) {
-		if (length > maxSize) return false;
-		if (type == null) return false;
+		if (length > maxSize) {
+			System.out.println("too large");
+			return false;
+		}
+		if (type == null) {
+			System.out.println("wrong type");
+			return false;
+		}
 		type = type.toLowerCase();
 		if ("text/html".equals(type.toLowerCase())) return true;
 		if ("text/xml".equals(type.toLowerCase())) return true;
 		if ("application/xml".equals(type.toLowerCase())) return true;
 		if (type.endsWith("+xml")) return true;
+		System.out.println("unsuppored type: " + type);
 		return false;
 	}
 	
@@ -154,7 +160,7 @@ public class Crawler implements CrawlMaster {
 	 * down
 	 */
 	public synchronized void notifyThreadExited() {
-		exitedWorkerCount--;
+		exitedWorkerCount++;
 	}
 	
 	public synchronized boolean shutDownMainThread() {

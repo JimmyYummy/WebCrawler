@@ -14,12 +14,11 @@ public class URLInfo {
 		if(docURL == null || docURL.equals(""))
 			return;
 		docURL = docURL.trim();
-		
-		if (docURL.startsWith("https://")) {
+		if (docURL.startsWith("https:/")) {
 		    this.isSecure = true;
-		    docURL = docURL.replaceFirst("https:", "http:");
+		    docURL = docURL.replaceFirst("https:", "http:")
+		    		.replaceFirst("http://", "http:/").replaceFirst("http:/", "http://");
 		}
-		
 		if(!docURL.startsWith("http://") || docURL.length() < 8)
 			return;
 		// Stripping off 'http://'
@@ -99,4 +98,8 @@ public class URLInfo {
     public void setSecure(boolean sec) {
         this.isSecure = sec;
     }
+    
+//    public static void main(String[] args) {
+//    	System.out.println(new URLInfo("https:/dbappserv.cis.upenn.edu/crawltest/nytimes/").getHostName());
+//    }
 }

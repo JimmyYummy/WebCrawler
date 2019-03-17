@@ -42,11 +42,11 @@ public class CrawlerWorker extends Thread {
 			setUnworking();
 			if (c.isDone())
 				break;
+
 			// get the url
 			String urlStr = null;
 			try {
 				while (true) {
-					System.out.println("xxxx");
 					urlStr = q.poll(5, TimeUnit.MILLISECONDS);
 					if (urlStr != null) break;
 					if (c.isDone()) break;
@@ -65,7 +65,6 @@ public class CrawlerWorker extends Thread {
 			while (c.deferCrawl(hostStr)) {
 				if (c.isDone())
 					break;
-
 			}
 			// check url ok to crawl
 			if (!c.isOKtoParse(url))
@@ -79,6 +78,7 @@ public class CrawlerWorker extends Thread {
 				lastModified = detail.getEpochSecond();
 //			send head request
 			try {
+				System.out.println(urlStr);
 				HttpURLConnection conn = createConnection(urlStr, url.isSecure(), "HEAD");
 				conn.setIfModifiedSince(lastModified);
 				int statusCode = conn.getResponseCode();
@@ -94,9 +94,11 @@ public class CrawlerWorker extends Thread {
 //					q.put(conn.getHeaderField("Location"));
 					conn.disconnect();
 					continue;
-				} else if (statusCode == HttpURLConnection.HTTP_ACCEPTED) {
+				} else if (statusCode == HttpURLConnection.HTTP_OK) {
 					// if status == 200 check size and type
-					if (!c.isQualifiedDoc(conn.getContentLength(), conn.getContentType())) {
+					String type = conn.getContentType();
+					type = type.split(";")[0].toLowerCase().trim();
+					if (!c.isQualifiedDoc(conn.getContentLength(), type)) {
 						conn.disconnect();
 						continue;
 					}
@@ -104,16 +106,22 @@ public class CrawlerWorker extends Thread {
 					conn.disconnect();
 					conn = createConnection(urlStr, url.isSecure(), "GET");
 					logger.info(urlStr + ": Downloading");
-					if (!(conn.getResponseCode() == HttpURLConnection.HTTP_ACCEPTED)) {
+					if (!(conn.getResponseCode() == HttpURLConnection.HTTP_OK)) {
 						System.err.println(conn.getResponseCode());
 						System.err.println("Unexpected Connection Failure when sending GET request: " + urlStr);
 					}
 					// if 200
 					// get doc
 					doc = readContent(conn);
-					isHtml = conn.getContentType().equals("text/html");
+					isHtml = type.equals("text/html");
 					// save doc / (or just increment count)
-					String docId = db.addDocument(doc, conn.getContentType());
+					if (! db.hasDocument(doc)) {
+						logger.debug("new doc");
+						c.incCount();
+					}
+					System.out.println(type);
+					String docId = db.addDocument(doc, type);
+					
 					// add or change UrlDetail
 					db.addUrlDetail(new URLDetail(urlStr, docId, conn.getLastModified()));
 					// remove old doc if necessary
@@ -138,9 +146,12 @@ public class CrawlerWorker extends Thread {
 				continue;
 			// extract links
 			Document htmlDoc = Jsoup.parse(doc);
-			htmlDoc.setBaseUri(CrawlerUtils.genURL(url.getHostName(), url.getPortNo(), url.isSecure()));
+			htmlDoc.setBaseUri(CrawlerUtils.genURL(url.getHostName(), url.getPortNo(), url.isSecure(), url.getFilePath()));
 			for (Element ele : htmlDoc.getElementsByAttribute("href")) {
 				String nextUrlStr = ele.absUrl("href");
+				nextUrlStr = nextUrlStr.replaceFirst("https://", "https:/").replaceFirst("https:/", "https://");
+				nextUrlStr = nextUrlStr.replaceFirst("http://", "http:/").replaceFirst("http:/", "http://");
+
 				try {
 					q.put(nextUrlStr);
 				} catch (InterruptedException e) {

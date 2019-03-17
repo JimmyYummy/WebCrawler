@@ -47,7 +47,7 @@ public abstract class CrawlerUtils {
 	
 	public static String genURL(String site, int port, boolean isSecure, String filePath) {
 		String url = genURL(site, port, isSecure) + "/" + filePath;
-		return url.replaceAll("//", "/");
+		return url.replaceAll("//", "/").replaceFirst("/", "//");
 	}
 	
 	public static String getDate() {

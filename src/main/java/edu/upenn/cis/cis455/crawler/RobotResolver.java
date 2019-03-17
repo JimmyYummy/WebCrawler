@@ -56,7 +56,7 @@ public class RobotResolver {
 			// print result
 			String txt = response.toString();
 			logger.debug("Received the robots.txt: \n" + txt);
-			if (fillInPattern(txt, allows, disallows, "cis455crawler")) {
+			if (! fillInPattern(txt, allows, disallows, "cis455crawler")) {
 				fillInPattern(txt, allows, disallows, "*");
 			}
 			websiteOK = true;
