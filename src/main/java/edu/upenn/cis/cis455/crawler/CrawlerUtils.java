@@ -10,7 +10,13 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public abstract class CrawlerUtils {
+	private static Logger logger = LogManager.getLogger(CrawlerUtils.class);
+
 	private static DateTimeFormatter formater1 = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz");
 	private static ZoneId zone = ZoneId.of("GMT");
 	private static String epochDate = null;
@@ -24,7 +30,7 @@ public abstract class CrawlerUtils {
 			signature = new String(md.digest(content.getBytes()));
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.catching(Level.DEBUG, e);
 			halt(500);
 		}
 		return signature;

@@ -7,6 +7,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.SortedMap;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -83,7 +84,7 @@ public class StorageInstance implements StorageInterface {
 				env.close();
 			}
 		}
-		System.out.println("instance created");
+		logger.debug("instance created");
 	}
 
 	@Override
@@ -116,8 +117,7 @@ public class StorageInstance implements StorageInterface {
 				md = MessageDigest.getInstance("SHA-256");
 				pass = new String(md.digest(password.getBytes()));
 			} catch (NoSuchAlgorithmException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.catching(Level.DEBUG, e);
 				halt(500);
 			}
 			if (user.getPassword().equals(pass)) {
@@ -228,7 +228,7 @@ public class StorageInstance implements StorageInterface {
 	@Override
 	public void addUrlDetail(URLDetail urlDetail) {
 		synchronized (urlMap) {
-			System.out.println("saving: " + urlDetail.getUrl());
+			logger.debug("Saving URL: " + urlDetail.getUrl());
 			urlMap.put(urlDetail.getUrl(), urlDetail);
 		}
 
@@ -238,7 +238,7 @@ public class StorageInstance implements StorageInterface {
 	public URLDetail getUrlDetial(URLInfo url) {
 		synchronized (urlMap) {
 			String urlStr = CrawlerUtils.genURL(url.getHostName(), url.getPortNo(), url.isSecure(), url.getFilePath());
-			System.out.println("checking: " + urlStr);
+			logger.debug("checking URL: " + urlStr);
 			return urlMap.getOrDefault(urlStr, null);
 		}
 	}

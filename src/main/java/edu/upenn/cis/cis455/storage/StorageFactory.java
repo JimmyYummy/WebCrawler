@@ -4,7 +4,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class StorageFactory {
+	private static Logger logger = LogManager.getLogger(StorageFactory.class);
+
 	static StorageInterface storage = null;
 	
     public static StorageInterface getDatabaseInstance(String directory) {
@@ -13,7 +19,7 @@ public class StorageFactory {
             try {
                 Files.createDirectory(Paths.get(directory));
             } catch (IOException e) {
-                e.printStackTrace();
+            	logger.catching(Level.DEBUG, e);
             }
         }
     	

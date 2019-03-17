@@ -6,6 +6,7 @@ import spark.Response;
 import spark.HaltException;
 import spark.Session;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,7 +44,7 @@ public class LoginHandler implements Route {
             logger.debug("Invalid credentials");
             resp.redirect("/login-form-err.html");
         } } catch (Exception e) {
-        	e.printStackTrace();
+        	logger.catching(Level.DEBUG, e);
         	throw e;
         }
 

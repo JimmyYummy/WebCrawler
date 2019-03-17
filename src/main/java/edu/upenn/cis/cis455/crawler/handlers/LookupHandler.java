@@ -9,6 +9,8 @@ import spark.Request;
 import spark.Route;
 import spark.Response;
 import spark.HaltException;
+import edu.upenn.cis.cis455.crawler.CrawlerUtils;
+import edu.upenn.cis.cis455.crawler.info.URLInfo;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 
 public class LookupHandler implements Route {
@@ -29,14 +31,18 @@ public class LookupHandler implements Route {
 		} catch (Exception e) {
 			halt(400);
 		}
-		if (url == null) halt(400, "no valid url");
-		logger.debug("lookup request from " + req  + "on " + url);
-		String doc = db.getDocument(url);
+		if (url == null)
+			halt(400, "no valid url");
+		logger.debug("lookup request from " + req + "on " + url);
+		URLInfo urlInfo = new URLInfo(url);
+		String urlStr = CrawlerUtils.genURL(urlInfo.getHostName(), urlInfo.getPortNo(), urlInfo.isSecure(),
+				urlInfo.getFilePath());
+		String doc = db.getDocument(urlStr);
 		if (doc == null) {
 			halt(404, "Lookup URL not found");
 		}
-		String docType = db.getDocType(url);
+		String docType = db.getDocType(urlStr);
 		resp.type(docType);
-		return db.getDocument(url);
+		return doc;
 	}
 }

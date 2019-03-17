@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -55,21 +56,16 @@ public class RobotResolver {
 			in.close();
 			// print result
 			String txt = response.toString();
-			logger.debug("Received the robots.txt: \n" + txt);
 			if (! fillInPattern(txt, allows, disallows, "cis455crawler")) {
 				fillInPattern(txt, allows, disallows, "*");
 			}
 			websiteOK = true;
 			lastVisit = Instant.now().getEpochSecond();
-			System.err.println(allows);
-			System.err.println(disallows);
 			logger.debug("created robot resolver: " + urlStr);
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.catching(Level.DEBUG, e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.catching(Level.DEBUG, e);
 		}
 	}
 
@@ -88,7 +84,7 @@ public class RobotResolver {
 		} else if (statusCode == HttpURLConnection.HTTP_OK) { // success
 			inputStream = conn.getInputStream();
 		} else {
-			System.err.println(statusCode);
+			logger.debug("error status code: " + statusCode);
 		}
 
 		return inputStream;
@@ -137,7 +133,7 @@ public class RobotResolver {
 	public synchronized boolean shouldDefer() {
 		if (!websiteOK)
 			return true;
-		if (Instant.now().getEpochSecond() - lastVisit <= delay) return true;
+		if (Instant.now().getEpochSecond() - lastVisit < delay) return true;
 		else lastVisit = Instant.now().getEpochSecond();
 		return false;
 	}

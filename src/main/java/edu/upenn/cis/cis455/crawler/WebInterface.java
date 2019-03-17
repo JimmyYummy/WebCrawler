@@ -5,6 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import static spark.Spark.*;
 import edu.upenn.cis.cis455.crawler.handlers.*;
@@ -12,6 +14,8 @@ import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 
 public class WebInterface {
+	private static Logger logger = LogManager.getLogger(WebInterface.class);
+
     public static void main(String args[]) {
         org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.DEBUG);
 
@@ -24,7 +28,7 @@ public class WebInterface {
             try {
                 Files.createDirectory(Paths.get(args[0]));
             } catch (IOException e) {
-                e.printStackTrace();
+            	logger.catching(Level.DEBUG, e);
             }
         }
         

@@ -11,13 +11,16 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import edu.upenn.cis.cis455.crawler.info.URLInfo;
 import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 
 public class Crawler implements CrawlMaster {
-	static final int NUM_WORKERS = 1;
+	private static Logger logger = LogManager.getLogger(Crawler.class);
+	static final int NUM_WORKERS = 20;
 
 	private int maxSize;
 	private int maxCount;
@@ -40,7 +43,7 @@ public class Crawler implements CrawlMaster {
 		try {
 			q.put(startUrl);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			logger.catching(Level.DEBUG, e);
 		}
 		pool = new ArrayList<>();
 		for (int i = 0; i < NUM_WORKERS; i++) {
@@ -107,11 +110,11 @@ public class Crawler implements CrawlMaster {
 
 	public boolean isQualifiedDoc(int length, String type) {
 		if (length > maxSize) {
-			System.out.println("too large");
+			logger.debug("too large");
 			return false;
 		}
 		if (type == null) {
-			System.out.println("wrong type");
+			logger.debug("wrong type");
 			return false;
 		}
 		type = type.toLowerCase();
@@ -119,7 +122,7 @@ public class Crawler implements CrawlMaster {
 		if ("text/xml".equals(type.toLowerCase())) return true;
 		if ("application/xml".equals(type.toLowerCase())) return true;
 		if (type.endsWith("+xml")) return true;
-		System.out.println("unsuppored type: " + type);
+		logger.debug("unsuppored type: " + type);
 		return false;
 	}
 	
@@ -175,12 +178,12 @@ public class Crawler implements CrawlMaster {
 	public static void main(String args[]) {
 		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.DEBUG);
 		if (args.length < 3 || args.length > 5) {
-			System.out.println(
+			logger.debug(
 					"Usage: Crawler {start URL} {database environment path} {max doc size in MB} {number of files to index}");
 			System.exit(1);
 		}
 
-		System.out.println("Crawler starting");
+		logger.debug("Crawler starting");
 		String startUrl = args[0];
 		String envPath = args[1];
 		Integer size = Integer.valueOf(args[2]);
@@ -190,7 +193,7 @@ public class Crawler implements CrawlMaster {
 
 		Crawler crawler = new Crawler(startUrl, db, size, count);
 
-		System.out.println("Starting crawl of " + count + " documents, starting at " + startUrl);
+		logger.debug("Starting crawl of " + count + " documents, starting at " + startUrl);
 		crawler.start();
 
 		while (!crawler.shutDownMainThread())
@@ -198,7 +201,7 @@ public class Crawler implements CrawlMaster {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.catching(Level.DEBUG, e);
 			}
 
 		// TODO: final shutdown
@@ -207,9 +210,10 @@ public class Crawler implements CrawlMaster {
 				worker.join();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.catching(Level.DEBUG, e);
 			}
 		}
-		System.out.println("Done crawling!");
+		logger.debug("" + crawler.docCount.get() + " new docs crawled");
+		logger.debug("Done crawling!");
 	}
 }

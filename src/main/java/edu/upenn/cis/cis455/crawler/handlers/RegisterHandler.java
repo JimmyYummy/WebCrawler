@@ -5,6 +5,7 @@ import static spark.Spark.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -45,7 +46,7 @@ public class RegisterHandler implements Route {
 			pass = new String(md.digest(password.getBytes()));
 		} catch (NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.catching(Level.DEBUG, e);
 			logger.catching(e);
 			halt(500);
 		}

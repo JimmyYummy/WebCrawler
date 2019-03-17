@@ -5,6 +5,7 @@ import spark.Route;
 import spark.Response;
 import spark.HaltException;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,7 +30,7 @@ public class IndexHandler implements Route {
 			//TODO:
 			return "Welcome, " + user.getFirstName() + " " + user.getLastName();
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.catching(Level.DEBUG, e);
 			logger.catching(e);
 			throw e;
 		}
