@@ -20,7 +20,7 @@ import edu.upenn.cis.cis455.storage.StorageInterface;
 
 public class Crawler implements CrawlMaster {
 	private static Logger logger = LogManager.getLogger(Crawler.class);
-	static final int NUM_WORKERS = 20;
+	static final int NUM_WORKERS = 10;
 
 	private int maxSize;
 	private int maxCount;
@@ -31,6 +31,7 @@ public class Crawler implements CrawlMaster {
 	private Collection<CrawlerWorker> pool;
 	private int exitedWorkerCount;
 	private AtomicInteger workingWorkers;
+	private AtomicInteger processingWorkers;
 	
 	private Set<String> signatures;
 	private Map<String, RobotResolver> robotMap;
@@ -53,7 +54,8 @@ public class Crawler implements CrawlMaster {
 		maxSize = size;
 		maxCount = count;
 		docCount = new AtomicInteger(0);
-		workingWorkers = new AtomicInteger(NUM_WORKERS);
+		workingWorkers = new AtomicInteger(0);
+		processingWorkers = new AtomicInteger(0);
 		
 		robotMap = new HashMap<>();
 		signatures = new HashSet<>();		
@@ -93,8 +95,8 @@ public class Crawler implements CrawlMaster {
 	 */
 	// when to wait? 
 	// 1. the robot.txt's delay has not been reached 2. workingWorkers + current docCount >= maxCount
-	public boolean deferCrawl(String url) {
-		if (workingWorkers.get() + docCount.get() > maxCount) return true;
+	public synchronized boolean deferCrawl(String url) {
+		if (processingWorkers.get() + docCount.get() >= maxCount) return true;
 		return robotMap.get(url).shouldDefer();
 	}
 
@@ -154,8 +156,14 @@ public class Crawler implements CrawlMaster {
 	 * Workers should notify when they are processing an URL
 	 */
 	public synchronized void setWorking(boolean working) {
+		logger.info("setworking:" + working);
 		if (working) workingWorkers.incrementAndGet();
 		else workingWorkers.decrementAndGet();
+	}
+	
+	public synchronized void setProcessing(boolean processing) {
+		if (processing) processingWorkers.incrementAndGet();
+		else processingWorkers.decrementAndGet();
 	}
 
 	/**
@@ -164,6 +172,7 @@ public class Crawler implements CrawlMaster {
 	 */
 	public synchronized void notifyThreadExited() {
 		exitedWorkerCount++;
+		logger.debug("new thread exited, total number: " + exitedWorkerCount);
 	}
 	
 	public synchronized boolean shutDownMainThread() {
@@ -176,7 +185,7 @@ public class Crawler implements CrawlMaster {
 	 * done, then close.
 	 */
 	public static void main(String args[]) {
-		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.DEBUG);
+		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.INFO);
 		if (args.length < 3 || args.length > 5) {
 			logger.debug(
 					"Usage: Crawler {start URL} {database environment path} {max doc size in MB} {number of files to index}");

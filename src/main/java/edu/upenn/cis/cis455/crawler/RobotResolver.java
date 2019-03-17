@@ -67,6 +67,7 @@ public class RobotResolver {
 		} catch (IOException e) {
 			logger.catching(Level.DEBUG, e);
 		}
+		delay = 1;
 	}
 
 	private InputStream getInputStream(URL url) throws IOException {
@@ -134,7 +135,7 @@ public class RobotResolver {
 		if (!websiteOK)
 			return true;
 		if (Instant.now().getEpochSecond() - lastVisit < delay) return true;
-		else lastVisit = Instant.now().getEpochSecond();
+		lastVisit = Instant.now().getEpochSecond();
 		return false;
 	}
 

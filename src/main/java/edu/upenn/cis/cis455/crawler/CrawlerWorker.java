@@ -29,19 +29,22 @@ public class CrawlerWorker extends Thread {
 	private Crawler c;
 	private StorageInterface db;
 	private boolean working;
+	private boolean processing;
 
 	public CrawlerWorker(BlockingQueue<String> q, Crawler c, StorageInterface db) {
 		this.q = q;
 		this.c = c;
 		this.db = db;
 		working = false;
+		processing = false;
 	}
 
 	@Override
 	public void run() {
 		try {
 			while (true) {
-				setUnworking();
+				setWorking(false);
+				setProcessing(false);
 				if (c.isDone())
 					break;
 
@@ -52,8 +55,10 @@ public class CrawlerWorker extends Thread {
 						urlStr = q.poll(5, TimeUnit.MILLISECONDS);
 						if (urlStr != null)
 							break;
-						if (c.isDone())
+						if (c.isDone()) {
+							logger.debug("crawling finished while the worker is waiting on the new url");
 							break;
+						}
 					}
 				} catch (InterruptedException e1) {
 					logger.catching(e1);
@@ -64,7 +69,7 @@ public class CrawlerWorker extends Thread {
 					logger.debug("Unsupported url type: " + urlStr);
 					continue;
 				}
-				setWorking();
+				setWorking(true);
 				URLInfo url = new URLInfo(urlStr);
 				logger.debug("Raw url: " + urlStr);
 				urlStr = CrawlerUtils.genURL(url.getHostName(), url.getPortNo(), url.isSecure(), url.getFilePath());
@@ -76,10 +81,14 @@ public class CrawlerWorker extends Thread {
 				logger.debug("Check whether defer: " + urlStr);
 				String hostStr = CrawlerUtils.genURL(url.getHostName(), url.getPortNo(), url.isSecure());
 				while (c.deferCrawl(hostStr)) {
-					if (c.isDone())
+					if (c.isDone()) {
+						logger.debug("crawling finished while the worker is waiting on the delay clearance");
 						break;
+					}
 				}
+				if (c.isDone()) break;
 				logger.debug("defer clearance retrieved: " + urlStr);
+				setProcessing(true);
 				// check url ok to crawl
 				if (!c.isOKtoParse(url)) {
 					logger.debug("Not OK to parse url (closed host/url visited before): " + urlStr);
@@ -176,23 +185,31 @@ public class CrawlerWorker extends Thread {
 			}
 		} catch (Exception e) {
 			logger.catching(Level.DEBUG, e);
-			setUnworking();
+		} finally {
+			if (working) setWorking(false);
+			if (processing) setProcessing(false);
+			c.notifyThreadExited();
 		}
-		c.notifyThreadExited();
+	}
+
+	private synchronized void setProcessing(boolean b) {
+		if (this.processing != b) {
+			c.setProcessing(b);
+		}
+		this.processing = b;
+		
+		
 	}
 
 	public synchronized boolean isWorking() {
 		return working;
 	}
 
-	private synchronized void setWorking() {
-		working = true;
-		c.setWorking(working);
-	}
-
-	private synchronized void setUnworking() {
-		working = false;
-		c.setWorking(working);
+	private synchronized void setWorking(boolean b) {
+		if (this.working != b) {
+			c.setWorking(b);
+		}
+		this.working = b;
 	}
 
 	private static HttpURLConnection createConnection(String urlStr, boolean isSecure, String method) {
