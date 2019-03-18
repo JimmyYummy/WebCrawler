@@ -238,7 +238,7 @@ public class Crawler implements CrawlMaster {
 		logger.debug("Crawler starting");
 		String startUrl = args[0];
 		String envPath = args[1];
-		int size = Integer.valueOf(args[2]);
+		int size = Integer.valueOf(args[2]) * 1024 * 1024;
 		int count = args.length == 4 ? Integer.valueOf(args[3]) : 100;
 
 		StorageInterface db = StorageFactory.getDatabaseInstance(envPath);
