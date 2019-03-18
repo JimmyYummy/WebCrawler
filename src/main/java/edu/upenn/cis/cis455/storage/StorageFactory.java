@@ -13,7 +13,7 @@ public class StorageFactory {
 
 	static StorageInterface storage = null;
 	
-    public static StorageInterface getDatabaseInstance(String directory) {
+    public static synchronized StorageInterface getDatabaseInstance(String directory) {
 	// TODO: factory object, instantiate your storage server
     	if (!Files.exists(Paths.get(directory))) {
             try {
@@ -23,7 +23,7 @@ public class StorageFactory {
             }
         }
     	
-    	if (storage == null) {
+    	if (storage == null || storage.isClosed()) {
     		storage = new StorageInstance(directory);
     	}
         return storage; 

@@ -15,7 +15,7 @@ public interface StorageInterface {
 	 * Add a new document, getting its ID
 	 * @param string 
 	 */
-	public String addDocument(String doc, String string);
+	public String addDocument(String doc, String type);
 	
 	/**
 	 * How many keywords so far?
@@ -60,5 +60,9 @@ public interface StorageInterface {
 	public boolean hasDocument(String doc);
 
 	public int docLinkCount(String docId);
+
+	public boolean isClosed();
+
+	void closeWithoutFlushing();
 	
 }

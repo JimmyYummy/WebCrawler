@@ -33,6 +33,8 @@ public class StorageInstance implements StorageInterface {
 
 	private Environment env = null;
 
+	private Database classDB = null;
+
 	private Database userDB = null;
 	SortedMap<String, User> userMap = null;
 
@@ -41,6 +43,8 @@ public class StorageInstance implements StorageInterface {
 
 	private Database urlDB = null;
 	SortedMap<String, URLDetail> urlMap = null;
+	
+	private boolean isClosed;
 
 	public StorageInstance(String directory) {
 
@@ -57,8 +61,8 @@ public class StorageInstance implements StorageInterface {
 			dbConfig.setSortedDuplicates(false);
 			dbConfig.setTransactional(true);
 
-			Database classDb = env.openDatabase(null, "classDb", dbConfig);
-			StoredClassCatalog catalog = new StoredClassCatalog(classDb);
+			classDB = env.openDatabase(null, "ClassDB", dbConfig);
+			StoredClassCatalog catalog = new StoredClassCatalog(classDB);
 
 			TupleBinding<String> userKeyBinding = TupleBinding.getPrimitiveBinding(String.class);
 			EntryBinding<User> userEntryBinding = new SerialBinding<User>(catalog, User.class);
@@ -75,6 +79,7 @@ public class StorageInstance implements StorageInterface {
 			urlDB = env.openDatabase(null, "UrlDB", dbConfig);
 			urlMap = new StoredSortedMap<String, URLDetail>(urlDB, urlKeyBinding, urlEntryBinding, true);
 
+			isClosed = true;
 		} catch (DatabaseException dbe) {
 			// Exception handling
 			if (userDB != null)
@@ -128,17 +133,44 @@ public class StorageInstance implements StorageInterface {
 			return null;
 		}
 	}
-
+	
 	@Override
-	public void close() {
-		logger.debug("closing the storage db system");
+	public synchronized void closeWithoutFlushing() {
+		logger.debug("closing w./o. flushing the storage db system");
 		if (userDB != null)
 			userDB.close();
+		if (urlDB != null)
+			urlDB.close();
+		if (docDB != null)
+			docDB.close();
+		if (classDB != null)
+			classDB.close();
 		if (env != null) {
-			env.removeDatabase(null, "UserDB");
 			env.cleanLog();
 			env.close();
 		}
+		isClosed = true;
+	}
+
+	@Override
+	public synchronized void close() {
+		logger.debug("closing w. flushing the storage db system");
+		if (userDB != null)
+			userDB.close();
+		if (urlDB != null)
+			urlDB.close();
+		if (docDB != null)
+			docDB.close();
+		if (classDB != null)
+			classDB.close();		if (env != null) {
+			env.truncateDatabase(null, "UserDB", false);
+			env.truncateDatabase(null, "UrlDB", false);
+			env.truncateDatabase(null, "DocDB", false);
+			env.truncateDatabase(null, "ClassDB", false);
+			env.cleanLog();
+			env.close();
+		}
+		isClosed = true;
 	}
 
 	@Override
@@ -163,13 +195,15 @@ public class StorageInstance implements StorageInterface {
 		}
 
 	}
-	
+
 	@Override
 	public void decreUrlCount(String docId) {
 		synchronized (docMap) {
 			DBDocument doc = docMap.remove(docId);
-			if (doc == null) return;
-			if (doc.getLinkedUrls() == 1) return;
+			if (doc == null)
+				return;
+			if (doc.getLinkedUrls() == 1)
+				return;
 			DBDocument newDoc = new DBDocument(docId, doc.getLinkedUrls() - 1, doc.getContent(), doc.getType());
 			docMap.put(docId, newDoc);
 		}
@@ -181,7 +215,8 @@ public class StorageInstance implements StorageInterface {
 		synchronized (urlMap) {
 			synchronized (docMap) {
 				URLDetail detail = urlMap.getOrDefault(url, null);
-				if (detail == null) return false;
+				if (detail == null)
+					return false;
 				DBDocument doc = docMap.getOrDefault(detail.getDocId(), null);
 				return doc == null ? false : "text/html".equals(doc.getType());
 			}
@@ -205,26 +240,28 @@ public class StorageInstance implements StorageInterface {
 		synchronized (urlMap) {
 			synchronized (docMap) {
 				URLDetail detail = urlMap.getOrDefault(url, null);
-				if (detail == null) return null;
+				if (detail == null)
+					return null;
 				DBDocument doc = docMap.getOrDefault(detail.getDocId(), null);
 				return doc == null ? null : doc.getContent();
 			}
 		}
 
 	}
-	
+
 	@Override
 	public String getDocType(String url) {
 		synchronized (urlMap) {
 			synchronized (docMap) {
 				URLDetail detail = urlMap.getOrDefault(url, null);
-				if (detail == null) return null;
+				if (detail == null)
+					return null;
 				DBDocument doc = docMap.getOrDefault(detail.getDocId(), null);
 				return doc == null ? null : doc.getType();
 			}
 		}
 	}
-	
+
 	@Override
 	public void addUrlDetail(URLDetail urlDetail) {
 		synchronized (urlMap) {
@@ -250,14 +287,19 @@ public class StorageInstance implements StorageInterface {
 			return docMap.containsKey(key);
 		}
 	}
-	
+
 	@Override
 	public int docLinkCount(String docId) {
 		synchronized (docMap) {
-			if (! docMap.containsKey(docId)) {
+			if (!docMap.containsKey(docId)) {
 				return 0;
 			}
 			return docMap.get(docId).getLinkedUrls();
 		}
+	}
+
+	@Override
+	public synchronized boolean isClosed() {
+		return isClosed;
 	}
 }
