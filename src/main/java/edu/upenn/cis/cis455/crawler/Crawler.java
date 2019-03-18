@@ -32,7 +32,7 @@ public class Crawler implements CrawlMaster {
 	private int exitedWorkerCount;
 	private AtomicInteger workingWorkers;
 	private AtomicInteger processingWorkers;
-	
+
 	private Set<String> signatures;
 	private Map<String, RobotResolver> robotMap;
 
@@ -56,9 +56,9 @@ public class Crawler implements CrawlMaster {
 		docCount = new AtomicInteger(0);
 		workingWorkers = new AtomicInteger(0);
 		processingWorkers = new AtomicInteger(0);
-		
+
 		robotMap = new HashMap<>();
-		signatures = new HashSet<>();		
+		signatures = new HashSet<>();
 	}
 
 	///// TODO: you'll need to flesh all of this out. You'll need to build a thread
@@ -68,21 +68,39 @@ public class Crawler implements CrawlMaster {
 	/**
 	 * Main thread
 	 */
-	public void start() {
+	public void startCrawling() {
 		for (CrawlerWorker worker : pool) {
 			worker.start();
 		}
+		
+		while (!shutDownMainThread())
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				logger.catching(Level.DEBUG, e);
+			}
+
+		// TODO: final shutdown
+		for (CrawlerWorker worker : pool) {
+			try {
+				worker.join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				logger.catching(Level.DEBUG, e);
+			}
+		}
+		logger.debug("" + docCount.get() + " new docs crawled");
 	}
 
 	/**
 	 * Returns true if it's permissible to access the site right now eg due to
 	 * robots, etc.
-	 */ 
+	 */
 	public boolean isOKtoCrawl(String site, int port, boolean isSecure) {
 		String url = CrawlerUtils.genURL(site, port, isSecure);
-		if (! robotMap.containsKey(url)) {
+		if (!robotMap.containsKey(url)) {
 			synchronized (this) {
-				if (! robotMap.containsKey(url)) {
+				if (!robotMap.containsKey(url)) {
 					robotMap.put(url, new RobotResolver(url));
 				}
 			}
@@ -93,10 +111,12 @@ public class Crawler implements CrawlMaster {
 	/**
 	 * Returns true if the crawl delay says we should wait
 	 */
-	// when to wait? 
-	// 1. the robot.txt's delay has not been reached 2. workingWorkers + current docCount >= maxCount
+	// when to wait?
+	// 1. the robot.txt's delay has not been reached 2. workingWorkers + current
+	// docCount >= maxCount
 	public synchronized boolean deferCrawl(String url) {
-		if (processingWorkers.get() + docCount.get() >= maxCount) return true;
+		if (processingWorkers.get() + docCount.get() >= maxCount)
+			return true;
 		return robotMap.get(url).shouldDefer();
 	}
 
@@ -120,14 +140,18 @@ public class Crawler implements CrawlMaster {
 			return false;
 		}
 		type = type.toLowerCase();
-		if ("text/html".equals(type.toLowerCase())) return true;
-		if ("text/xml".equals(type.toLowerCase())) return true;
-		if ("application/xml".equals(type.toLowerCase())) return true;
-		if (type.endsWith("+xml")) return true;
+		if ("text/html".equals(type.toLowerCase()))
+			return true;
+		if ("text/xml".equals(type.toLowerCase()))
+			return true;
+		if ("application/xml".equals(type.toLowerCase()))
+			return true;
+		if (type.endsWith("+xml"))
+			return true;
 		logger.debug("unsuppored type: " + type);
 		return false;
 	}
-	
+
 	/**
 	 * Returns true if the document content looks worthy of indexing, eg that it
 	 * doesn't have a known signature
@@ -147,8 +171,10 @@ public class Crawler implements CrawlMaster {
 	 * Workers can poll this to see if they should exit, ie the crawl is done
 	 */
 	public synchronized boolean isDone() {
-		if (docCount.get() >= maxCount) return true;
-		if (q.isEmpty() && workingWorkers.get() <= 0) return true;
+		if (docCount.get() >= maxCount)
+			return true;
+		if (q.isEmpty() && workingWorkers.get() <= 0)
+			return true;
 		return false;
 	}
 
@@ -156,14 +182,17 @@ public class Crawler implements CrawlMaster {
 	 * Workers should notify when they are processing an URL
 	 */
 	public synchronized void setWorking(boolean working) {
-		logger.info("setworking:" + working);
-		if (working) workingWorkers.incrementAndGet();
-		else workingWorkers.decrementAndGet();
+		if (working)
+			workingWorkers.incrementAndGet();
+		else
+			workingWorkers.decrementAndGet();
 	}
-	
+
 	public synchronized void setProcessing(boolean processing) {
-		if (processing) processingWorkers.incrementAndGet();
-		else processingWorkers.decrementAndGet();
+		if (processing)
+			processingWorkers.incrementAndGet();
+		else
+			processingWorkers.decrementAndGet();
 	}
 
 	/**
@@ -174,12 +203,26 @@ public class Crawler implements CrawlMaster {
 		exitedWorkerCount++;
 		logger.debug("new thread exited, total number: " + exitedWorkerCount);
 	}
-	
+
 	public synchronized boolean shutDownMainThread() {
 		return exitedWorkerCount == NUM_WORKERS;
 	}
-	
 
+	public void runCrawling() {
+
+	}
+
+	public static void crawl(String startUrl, StorageInterface db, int size, int count) {
+
+		Crawler crawler = new Crawler(startUrl, db, size, count);
+
+		logger.debug("Starting crawl of " + count + " documents, starting at " + startUrl);
+		crawler.startCrawling();
+
+		logger.debug("Done crawling!");
+		db.closeWithoutFlushing();
+	}
+	
 	/**
 	 * Main program: init database, start crawler, wait for it to notify that it is
 	 * done, then close.
@@ -195,34 +238,10 @@ public class Crawler implements CrawlMaster {
 		logger.debug("Crawler starting");
 		String startUrl = args[0];
 		String envPath = args[1];
-		Integer size = Integer.valueOf(args[2]);
-		Integer count = args.length == 4 ? Integer.valueOf(args[3]) : 100;
+		int size = Integer.valueOf(args[2]);
+		int count = args.length == 4 ? Integer.valueOf(args[3]) : 100;
 
 		StorageInterface db = StorageFactory.getDatabaseInstance(envPath);
-
-		Crawler crawler = new Crawler(startUrl, db, size, count);
-
-		logger.debug("Starting crawl of " + count + " documents, starting at " + startUrl);
-		crawler.start();
-
-		while (!crawler.shutDownMainThread())
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				logger.catching(Level.DEBUG, e);
-			}
-
-		// TODO: final shutdown
-		for (CrawlerWorker worker : crawler.pool) {
-			try {
-				worker.join();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				logger.catching(Level.DEBUG, e);
-			}
-		}
-		logger.debug("" + crawler.docCount.get() + " new docs crawled");
-		logger.debug("Done crawling!");
+		crawl(startUrl, db, size, count);
 	}
 }
