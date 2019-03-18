@@ -207,9 +207,9 @@ public class Crawler implements CrawlMaster {
 	public synchronized boolean shutDownMainThread() {
 		return exitedWorkerCount == NUM_WORKERS;
 	}
-
-	public void runCrawling() {
-
+	
+	public int maxSize() {
+		return maxSize;
 	}
 
 	public static void crawl(String startUrl, StorageInterface db, int size, int count) {

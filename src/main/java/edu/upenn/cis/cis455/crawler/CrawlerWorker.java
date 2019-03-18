@@ -86,7 +86,8 @@ public class CrawlerWorker extends Thread {
 						break;
 					}
 				}
-				if (c.isDone()) break;
+				if (c.isDone())
+					break;
 				logger.debug("defer clearance retrieved: " + urlStr);
 				setProcessing(true);
 				// check url ok to crawl
@@ -115,6 +116,9 @@ public class CrawlerWorker extends Thread {
 							|| statusCode == HttpURLConnection.HTTP_MOVED_TEMP) {
 						// if status == 301/302 put the new link in the queue and quit
 						// take care of different types of URLs
+						String docId = db.removeUrlDetail(urlStr);
+						if (docId != null)
+							db.decreUrlCount(docId);
 						String mockHtml = String.format("<a href=\"%s\"></a>", conn.getHeaderField("Location"));
 						Document htmlDoc = Jsoup.parse(mockHtml);
 						htmlDoc.absUrl(urlStr);
@@ -128,6 +132,9 @@ public class CrawlerWorker extends Thread {
 						type = type.split(";")[0].toLowerCase().trim();
 						if (!c.isQualifiedDoc(conn.getContentLength(), type)) {
 							conn.disconnect();
+							String docId = db.removeUrlDetail(urlStr);
+							if (docId != null)
+								db.decreUrlCount(docId);
 							continue;
 						}
 						// if qualified -> send GET request
@@ -135,6 +142,9 @@ public class CrawlerWorker extends Thread {
 						conn = createConnection(urlStr, url.isSecure(), "GET");
 						logger.info(urlStr + ": Downloading");
 						if (!(conn.getResponseCode() == HttpURLConnection.HTTP_OK)) {
+							String docId = db.removeUrlDetail(urlStr);
+							if (docId != null)
+								db.decreUrlCount(docId);
 							System.err.println(conn.getResponseCode());
 							System.err.println("Unexpected Connection Failure when sending GET request: " + urlStr);
 						}
@@ -186,8 +196,10 @@ public class CrawlerWorker extends Thread {
 		} catch (Exception e) {
 			logger.catching(Level.DEBUG, e);
 		} finally {
-			if (working) setWorking(false);
-			if (processing) setProcessing(false);
+			if (working)
+				setWorking(false);
+			if (processing)
+				setProcessing(false);
 			c.notifyThreadExited();
 		}
 	}
@@ -197,8 +209,7 @@ public class CrawlerWorker extends Thread {
 			c.setProcessing(b);
 		}
 		this.processing = b;
-		
-		
+
 	}
 
 	public synchronized boolean isWorking() {
@@ -238,13 +249,15 @@ public class CrawlerWorker extends Thread {
 
 	private String readContent(HttpURLConnection conn) throws IOException {
 		BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-		String inputLine;
-		StringBuilder response = new StringBuilder();
-
-		while ((inputLine = in.readLine()) != null) {
-			response.append(inputLine);
+		int size = conn.getContentLength();
+		if (size == -1)
+			size = c.maxSize();
+		int bytesRead = 0;
+		char[] buffer = new char[size];
+		while (bytesRead != size) {
+			bytesRead += in.read(buffer, bytesRead, size - bytesRead);
 		}
 		in.close();
-		return response.toString();
+		return new String(buffer);
 	}
 }

@@ -270,6 +270,14 @@ public class StorageInstance implements StorageInterface {
 		}
 
 	}
+	
+	@Override
+	public String removeUrlDetail(String urlStr) {
+		synchronized (urlMap) {
+			logger.debug("Removing URL: " + urlStr);
+			return urlMap.remove(urlStr).getDocId();
+		}
+	}
 
 	@Override
 	public URLDetail getUrlDetial(URLInfo url) {

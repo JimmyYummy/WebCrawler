@@ -64,5 +64,7 @@ public interface StorageInterface {
 	public boolean isClosed();
 
 	void closeWithoutFlushing();
+
+	public String removeUrlDetail(String urlStr);
 	
 }
