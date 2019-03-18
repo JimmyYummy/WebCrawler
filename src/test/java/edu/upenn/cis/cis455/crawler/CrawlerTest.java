@@ -35,8 +35,8 @@ public class CrawlerTest {
 	
 	@Test
 	public synchronized void testCrawl2() {
-		db = StorageFactory.getDatabaseInstance(dbPath + "xxx");
-		Crawler.crawl(url, db, 1, 10000);
+		db = StorageFactory.getDatabaseInstance(dbPath);
+		Crawler.crawl(url + "xxx", db, 1, 10000);
 		db = StorageFactory.getDatabaseInstance(dbPath);
 		assertEquals(0, db.getCorpusSize());	
 		db.close();
