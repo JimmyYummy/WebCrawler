@@ -5,6 +5,14 @@ import static spark.Spark.halt;
 import java.io.File;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.SortedMap;
 
 import org.apache.logging.log4j.Level;
@@ -24,6 +32,7 @@ import com.sleepycat.je.EnvironmentConfig;
 
 import edu.upenn.cis.cis455.crawler.CrawlerUtils;
 import edu.upenn.cis.cis455.crawler.info.URLInfo;
+import edu.upenn.cis.cis455.model.ChannelMeta;
 import edu.upenn.cis.cis455.model.DBDocument;
 import edu.upenn.cis.cis455.model.URLDetail;
 import edu.upenn.cis.cis455.model.User;
@@ -43,7 +52,10 @@ public class StorageInstance implements StorageInterface {
 
 	private Database urlDB = null;
 	SortedMap<String, URLDetail> urlMap = null;
-	
+
+	private Database channelDB = null;
+	SortedMap<Integer, ChannelMeta> channelMap = null;
+
 	private boolean isClosed;
 
 	public StorageInstance(String directory) {
@@ -78,6 +90,13 @@ public class StorageInstance implements StorageInterface {
 			EntryBinding<URLDetail> urlEntryBinding = new SerialBinding<URLDetail>(catalog, URLDetail.class);
 			urlDB = env.openDatabase(null, "UrlDB", dbConfig);
 			urlMap = new StoredSortedMap<String, URLDetail>(urlDB, urlKeyBinding, urlEntryBinding, true);
+
+			TupleBinding<Integer> channelKeyBinding = TupleBinding.getPrimitiveBinding(Integer.class);
+			EntryBinding<ChannelMeta> channelMetaEntryBinding = new SerialBinding<ChannelMeta>(catalog,
+					ChannelMeta.class);
+			channelDB = env.openDatabase(null, "ChannelDB", dbConfig);
+			channelMap = new StoredSortedMap<Integer, ChannelMeta>(channelDB, channelKeyBinding,
+					channelMetaEntryBinding, true);
 
 			isClosed = true;
 		} catch (DatabaseException dbe) {
@@ -133,7 +152,7 @@ public class StorageInstance implements StorageInterface {
 			return null;
 		}
 	}
-	
+
 	@Override
 	public synchronized void closeWithoutFlushing() {
 		logger.debug("closing w./o. flushing the storage db system");
@@ -145,6 +164,8 @@ public class StorageInstance implements StorageInterface {
 			docDB.close();
 		if (classDB != null)
 			classDB.close();
+		if (channelDB != null)
+			channelDB.close();
 		if (env != null) {
 			env.cleanLog();
 			env.close();
@@ -161,12 +182,16 @@ public class StorageInstance implements StorageInterface {
 			urlDB.close();
 		if (docDB != null)
 			docDB.close();
+		if (channelDB != null)
+			channelDB.close();
 		if (classDB != null)
-			classDB.close();		if (env != null) {
+			classDB.close();
+		if (env != null) {
 			env.truncateDatabase(null, "UserDB", false);
 			env.truncateDatabase(null, "UrlDB", false);
 			env.truncateDatabase(null, "DocDB", false);
 			env.truncateDatabase(null, "ClassDB", false);
+			env.truncateDatabase(null, "ChannelDB", false);
 			env.cleanLog();
 			env.close();
 		}
@@ -270,7 +295,7 @@ public class StorageInstance implements StorageInterface {
 		}
 
 	}
-	
+
 	@Override
 	public String removeUrlDetail(String urlStr) {
 		synchronized (urlMap) {
@@ -310,4 +335,76 @@ public class StorageInstance implements StorageInterface {
 	public synchronized boolean isClosed() {
 		return isClosed;
 	}
+
+	@Override
+	public void addUrlToChannel(int channelNo, String url) {
+		ChannelMeta ch = channelMap.get(channelNo);
+		if (ch == null)
+			return;
+		ch.getUrls().add(url);
+	}
+
+	@Override
+	public void removeUrlFromAllChannels(String url) {
+		for (ChannelMeta ch : channelMap.values()) {
+			Iterator<String> iter = ch.getUrls().iterator();
+			while (iter.hasNext()) {
+				if (iter.next().equals(url))
+					iter.remove();
+			}
+		}
+	}
+
+	@Override
+	public synchronized boolean addChannel(String channelName, String channelCreater, String channelXPath) {
+		if (channelName == null || channelCreater == null || channelXPath == null)
+			return false;
+		for (ChannelMeta ch : channelMap.values()) {
+			if (channelName.equals(ch.getChannelName()))
+				return false;
+		}
+		int channelId = channelMap.size();
+		ChannelMeta ch = new ChannelMeta(channelId, channelName, channelCreater, channelXPath);
+		channelMap.put(channelId, ch);
+		return true;
+	}
+
+	@Override
+	public synchronized List<List<String>> getChannelInfos() {
+		List<List<String>> infos = new ArrayList<>();
+		int size = channelMap.size();
+		for (int i = 0; i < size; i++) {
+			ChannelMeta ch = channelMap.get(i);
+			List<String> chInfo = new ArrayList<>();
+			chInfo.add(ch.getChannelName());
+			chInfo.add(ch.getChannelXPath());
+			infos.add(chInfo);
+		}
+		return infos;
+	}
+
+	@Override
+	public synchronized ChannelMeta getChannelDetail(int channelNo) {
+		return channelMap.get(channelNo);
+	}
+
+	@Override
+	public int getChannelNo(String name) {
+		for (ChannelMeta ch : channelMap.values()) {
+			if (ch.getChannelName().equals(name))
+				return ch.getChannelNo();
+		}
+		return -1;
+	}
+
+	@Override
+	public String getCraweledTime(String url) {
+		URLDetail ud = urlMap.get(url);
+		long epochSec = ud.getEpochSecond();
+		ZonedDateTime zdt = Instant.ofEpochSecond(epochSec, 0).atZone(ZoneId.of("EST"));
+
+		return String.format("%s-%s-%sT%s:%s:%s", zdt.getYear(), zdt.getMonth(), zdt.getDayOfMonth(), zdt.getHour(),
+				zdt.getMinute(), zdt.getSecond());
+	}
+
 }

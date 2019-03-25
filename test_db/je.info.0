@@ -1,0 +1,50 @@
+2019-03-25 03:01:21.104 UTC INFO [test_db] Start DB remove/truncate scan, id=1 dbId=7 dbName=UserDB
+2019-03-25 03:01:21.104 UTC INFO [test_db] End DB remove/truncate scan, id=1 scanned=0 dbId=7 dbName=UserDB
+2019-03-25 03:01:21.105 UTC INFO [test_db] Start DB remove/truncate scan, id=2 dbId=9 dbName=UrlDB
+2019-03-25 03:01:21.105 UTC INFO [test_db] End DB remove/truncate scan, id=2 scanned=2 dbId=9 dbName=UrlDB
+2019-03-25 03:01:21.105 UTC INFO [test_db] Start DB remove/truncate scan, id=3 dbId=8 dbName=DocDB
+2019-03-25 03:01:21.106 UTC INFO [test_db] End DB remove/truncate scan, id=3 scanned=2 dbId=8 dbName=DocDB
+2019-03-25 03:01:21.106 UTC INFO [test_db] Start DB remove/truncate scan, id=4 dbId=6 dbName=ClassDB
+2019-03-25 03:01:21.107 UTC INFO [test_db] End DB remove/truncate scan, id=4 scanned=3 dbId=6 dbName=ClassDB
+2019-03-25 03:01:21.110 UTC INFO [test_db] JEErasure soft shutdown initiated.
+2019-03-25 03:01:21.110 UTC INFO [test_db] RepairReservedFiles-test_db soft shutdown initiated.
+2019-03-25 03:01:21.125 UTC INFO [test_db] Start DB remove/truncate scan, id=5 dbId=10 dbName=UserDB
+2019-03-25 03:01:21.126 UTC INFO [test_db] End DB remove/truncate scan, id=5 scanned=0 dbId=10 dbName=UserDB
+2019-03-25 03:01:21.126 UTC INFO [test_db] Start DB remove/truncate scan, id=6 dbId=11 dbName=UrlDB
+2019-03-25 03:01:21.126 UTC INFO [test_db] End DB remove/truncate scan, id=6 scanned=2 dbId=11 dbName=UrlDB
+2019-03-25 03:01:21.127 UTC INFO [test_db] Start DB remove/truncate scan, id=7 dbId=12 dbName=DocDB
+2019-03-25 03:01:21.127 UTC INFO [test_db] End DB remove/truncate scan, id=7 scanned=2 dbId=12 dbName=DocDB
+2019-03-25 03:01:21.128 UTC INFO [test_db] Start DB remove/truncate scan, id=8 dbId=13 dbName=ClassDB
+2019-03-25 03:01:21.128 UTC INFO [test_db] End DB remove/truncate scan, id=8 scanned=3 dbId=13 dbName=ClassDB
+2019-03-25 03:01:21.130 UTC INFO [test_db] JEErasure soft shutdown initiated.
+2019-03-25 03:01:21.131 UTC INFO [test_db] RepairReservedFiles-test_db soft shutdown initiated.
+2019-03-25 03:01:21.146 UTC INFO [test_db] Start DB remove/truncate scan, id=9 dbId=14 dbName=UserDB
+2019-03-25 03:01:21.147 UTC INFO [test_db] End DB remove/truncate scan, id=9 scanned=2 dbId=14 dbName=UserDB
+2019-03-25 03:01:21.148 UTC INFO [test_db] Start DB remove/truncate scan, id=10 dbId=15 dbName=UrlDB
+2019-03-25 03:01:21.148 UTC INFO [test_db] End DB remove/truncate scan, id=10 scanned=0 dbId=15 dbName=UrlDB
+2019-03-25 03:01:21.148 UTC INFO [test_db] Start DB remove/truncate scan, id=11 dbId=16 dbName=DocDB
+2019-03-25 03:01:21.149 UTC INFO [test_db] End DB remove/truncate scan, id=11 scanned=0 dbId=16 dbName=DocDB
+2019-03-25 03:01:21.149 UTC INFO [test_db] Start DB remove/truncate scan, id=12 dbId=17 dbName=ClassDB
+2019-03-25 03:01:21.149 UTC INFO [test_db] End DB remove/truncate scan, id=12 scanned=2 dbId=17 dbName=ClassDB
+2019-03-25 03:01:21.152 UTC INFO [test_db] JEErasure soft shutdown initiated.
+2019-03-25 03:01:21.153 UTC INFO [test_db] RepairReservedFiles-test_db soft shutdown initiated.
+2019-03-25 03:01:21.167 UTC INFO [test_db] Start DB remove/truncate scan, id=13 dbId=18 dbName=UserDB
+2019-03-25 03:01:21.167 UTC INFO [test_db] End DB remove/truncate scan, id=13 scanned=0 dbId=18 dbName=UserDB
+2019-03-25 03:01:21.168 UTC INFO [test_db] Start DB remove/truncate scan, id=14 dbId=19 dbName=UrlDB
+2019-03-25 03:01:21.168 UTC INFO [test_db] End DB remove/truncate scan, id=14 scanned=0 dbId=19 dbName=UrlDB
+2019-03-25 03:01:21.169 UTC INFO [test_db] Start DB remove/truncate scan, id=15 dbId=20 dbName=DocDB
+2019-03-25 03:01:21.169 UTC INFO [test_db] End DB remove/truncate scan, id=15 scanned=2 dbId=20 dbName=DocDB
+2019-03-25 03:01:21.169 UTC INFO [test_db] Start DB remove/truncate scan, id=16 dbId=21 dbName=ClassDB
+2019-03-25 03:01:21.169 UTC INFO [test_db] End DB remove/truncate scan, id=16 scanned=2 dbId=21 dbName=ClassDB
+2019-03-25 03:01:21.173 UTC INFO [test_db] JEErasure soft shutdown initiated.
+2019-03-25 03:01:21.173 UTC INFO [test_db] RepairReservedFiles-test_db soft shutdown initiated.
+2019-03-25 03:01:21.190 UTC INFO [test_db] Start DB remove/truncate scan, id=17 dbId=22 dbName=UserDB
+2019-03-25 03:01:21.190 UTC INFO [test_db] End DB remove/truncate scan, id=17 scanned=0 dbId=22 dbName=UserDB
+2019-03-25 03:01:21.191 UTC INFO [test_db] Start DB remove/truncate scan, id=18 dbId=23 dbName=UrlDB
+2019-03-25 03:01:21.191 UTC INFO [test_db] End DB remove/truncate scan, id=18 scanned=0 dbId=23 dbName=UrlDB
+2019-03-25 03:01:21.191 UTC INFO [test_db] Start DB remove/truncate scan, id=19 dbId=24 dbName=DocDB
+2019-03-25 03:01:21.191 UTC INFO [test_db] End DB remove/truncate scan, id=19 scanned=1 dbId=24 dbName=DocDB
+2019-03-25 03:01:21.192 UTC INFO [test_db] Start DB remove/truncate scan, id=20 dbId=25 dbName=ClassDB
+2019-03-25 03:01:21.192 UTC INFO [test_db] End DB remove/truncate scan, id=20 scanned=2 dbId=25 dbName=ClassDB
+2019-03-25 03:01:21.195 UTC INFO [test_db] JEErasure soft shutdown initiated.
+2019-03-25 03:01:21.195 UTC INFO [test_db] RepairReservedFiles-test_db soft shutdown initiated.

@@ -57,7 +57,8 @@ public class WebInterface {
         	return "";
         });
         get("/lookup", new LookupHandler(database));
-        
+        get("/create/:name", new CreateChannelHandler(database));
+        get("/show", new ShowChannelHandler(database));
         
         awaitInitialization();
     }
