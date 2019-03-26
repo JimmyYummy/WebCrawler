@@ -1,7 +1,6 @@
 package edu.upenn.cis.cis455.storage;
 
 import java.util.List;
-import java.util.Map;
 
 import edu.upenn.cis.cis455.crawler.info.URLInfo;
 import edu.upenn.cis.cis455.model.ChannelMeta;

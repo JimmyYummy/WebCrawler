@@ -1,21 +1,15 @@
 package edu.upenn.cis.cis455.xpathengine;
 
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Deque;
-import java.util.Properties;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 
 import edu.upenn.cis.cis455.model.OccurrenceEvent;
-import edu.upenn.cis.cis455.stormLiteCrawler.XPathMatchingBolt;
 
 public class XPathEngineImpl implements XPathEngine {
 	private static Logger logger = LogManager.getLogger(XPathEngineImpl.class);

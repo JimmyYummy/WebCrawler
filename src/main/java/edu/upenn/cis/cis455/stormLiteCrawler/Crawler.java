@@ -26,7 +26,6 @@ import edu.upenn.cis.stormlite.Config;
 import edu.upenn.cis.stormlite.LocalCluster;
 import edu.upenn.cis.stormlite.Topology;
 import edu.upenn.cis.stormlite.TopologyBuilder;
-import edu.upenn.cis.stormlite.tuple.Fields;
 
 public class Crawler implements CrawlMaster, Serializable {
 	private static Logger logger = LogManager.getLogger(Crawler.class);
