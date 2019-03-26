@@ -50,6 +50,7 @@ public class WebInterface {
         
         get("/", new IndexHandler(database));
         get("/index.html", new IndexHandler(database));
+        get("/.", new IndexHandler(database));
         
         get("/logout", (req, resp) -> {
         	req.session(false).invalidate();

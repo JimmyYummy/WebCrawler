@@ -39,7 +39,7 @@ public class LoginHandler implements Route {
             session.attribute("user", user);
             session.attribute("password", pass);
             session.attribute("userModel", userModel);
-            resp.redirect("/index.html");
+            resp.redirect("/.");
         } else {
             logger.debug("Invalid credentials");
             resp.redirect("/login-form-err.html");

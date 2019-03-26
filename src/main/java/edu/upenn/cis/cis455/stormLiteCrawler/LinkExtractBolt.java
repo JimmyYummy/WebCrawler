@@ -38,7 +38,8 @@ public class LinkExtractBolt implements IRichBolt {
 	 */
 	@Override
 	public void prepare(Map<String, String> stormConf, TopologyContext context, OutputCollector collector) {
-		this.q = Crawler.getCrawler().getBlockingQueue();
+		this.c = Crawler.getCrawler();
+		this.q = c.getBlockingQueue();
 	}
 
 	/**
@@ -47,17 +48,22 @@ public class LinkExtractBolt implements IRichBolt {
 	 */
 	@Override
 	public void execute(Tuple input) {
-		if ("html".equals(input.getStringByField("docType"))) {
+		String docType = input.getStringByField("doctype");
+		log.debug("new input received, type: " + docType);
+		if ("html".equals(docType)) {
 			String doc = input.getStringByField("doc");
-			if (!c.isIndexable(doc))
+			if (!c.isIndexable(doc)) {
+				log.debug("unindexable doc");
 				return;
+			}
 			// extract links
-			String baseUrl = input.getStringByField("baseUrl");
+			String baseUrl = input.getStringByField("url");
 			Document htmlDoc = Jsoup.parse(doc);
 			htmlDoc.setBaseUri(baseUrl);
 			for (Element ele : htmlDoc.getElementsByAttribute("href")) {
 				String nextUrlStr = ele.absUrl("href");
 				try {
+					log.debug("New URL added to the queue: " + nextUrlStr);
 					q.put(nextUrlStr);
 				} catch (InterruptedException e) {
 					logger.catching(Level.DEBUG, e);

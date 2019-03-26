@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -75,10 +76,19 @@ public class UrlSpout implements IRichSpout {
 	public void nextTuple() {
 		if (q != null) {
 			String url = null;
-			try {
-				url = q.take();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+//			try {
+//				url = q.take();
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+			while (url == null) {
+				try {
+					url = q.poll(10, TimeUnit.MICROSECONDS);
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			if (url != null) {
 				log.debug(getExecutorId() + " emitting " + url);

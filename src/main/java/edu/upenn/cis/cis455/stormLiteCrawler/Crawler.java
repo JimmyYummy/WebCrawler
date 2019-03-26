@@ -78,7 +78,6 @@ public class Crawler implements CrawlMaster, Serializable {
 	 */
 	public void startCrawling() {
 		Config config = new Config();
-
 		UrlSpout spout = new UrlSpout();
 		DocFetchBolt dfBolt = new DocFetchBolt();
 		LinkExtractBolt leBolt = new LinkExtractBolt();
@@ -86,17 +85,16 @@ public class Crawler implements CrawlMaster, Serializable {
 		ChannelDocBolt cdBolt = new ChannelDocBolt();
 
 		TopologyBuilder builder = new TopologyBuilder();
-
+		
 		builder.setSpout("urlSpout", spout, 1);
 
 		builder.setBolt("dfBolt", dfBolt, 1).shuffleGrouping("urlSpout");
-		builder.setBolt("leBolt", leBolt, 1).shuffleGrouping("dfBolt");
-		builder.setBolt("xpmBolt", xpmBolt, 1).shuffleGrouping("dfBolt");
-		builder.setBolt("cdBolt", cdBolt, 1).fieldsGrouping("xpmBolt", new Fields("channelNo"));
+		builder.setBolt("leBolt", leBolt, 2).shuffleGrouping("dfBolt");
+		builder.setBolt("xpmBolt", xpmBolt, 2).shuffleGrouping("dfBolt");
+		builder.setBolt("cdBolt", cdBolt, 2).fieldsGrouping("xpmBolt", new Fields("channelNo"));
 
 		cluster = new LocalCluster();
 		Topology topo = builder.createTopology();
-
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			String str = mapper.writeValueAsString(topo);
@@ -106,8 +104,7 @@ public class Crawler implements CrawlMaster, Serializable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		cluster.submitTopology("crawler", config, builder.createTopology());
+		cluster.submitTopology("crawler", config, topo);
 
 		while (!shutDownMainThread()) {
 			try {
@@ -244,7 +241,15 @@ public class Crawler implements CrawlMaster, Serializable {
 	}
 
 	public synchronized boolean shutDownMainThread() {
-		return q.size() == 0 && workingWorkers.get() == 0;
+//		if (q.size() == 0 && workingWorkers.get() == 0) {
+//			try {
+//				Thread.sleep(5000);
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+//			return q.size() == 0 && workingWorkers.get() == 0;
+//		}
+		return false;
 	}
 
 	public int maxSize() {
@@ -273,7 +278,7 @@ public class Crawler implements CrawlMaster, Serializable {
 	 * done, then close.
 	 */
 	public static void main(String args[]) {
-		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.INFO);
+		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.DEBUG);
 		if (args.length < 3 || args.length > 5) {
 			logger.debug(
 					"Usage: Crawler {start URL} {database environment path} {max doc size in MB} {number of files to index}");

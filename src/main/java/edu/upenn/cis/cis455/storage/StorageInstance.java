@@ -391,6 +391,7 @@ public class StorageInstance implements StorageInterface {
 	@Override
 	public int getChannelNo(String name) {
 		for (ChannelMeta ch : channelMap.values()) {
+			if (ch.getChannelName() == null) continue;
 			if (ch.getChannelName().equals(name))
 				return ch.getChannelNo();
 		}

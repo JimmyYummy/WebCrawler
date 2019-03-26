@@ -80,7 +80,9 @@ public class WordSpout implements IRichSpout {
         
         try {
         	log.debug(getExecutorId() + " opening file reader");
-			reader = new BufferedReader(new FileReader("words.txt"));
+        	System.out.println("Working Directory = " +
+                    System.getProperty("user.dir"));
+			reader = new BufferedReader(new FileReader("./words.txt"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -177,11 +177,14 @@ public class DocFetchBolt implements IRichBolt {
 				setWorking(false);
 				setProcessing(false);
 			}
+			
 			if (doc != null) {
 				if (isHtml) {
 					collector.emit(new Values<Object>(doc, urlStr, "html"));
+					logger.debug("new html doc emited");
 				} else {
 					collector.emit(new Values<Object>(doc, urlStr, "xml"));
+					logger.debug("new xml doc emited");
 				}
 			}
 			break;

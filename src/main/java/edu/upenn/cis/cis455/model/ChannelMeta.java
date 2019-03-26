@@ -13,6 +13,7 @@ public class ChannelMeta implements Serializable{
 	
 	public ChannelMeta(int channelNo, String channelName, String channelCreater, String channelXPath) {
 		this.channelNo = channelNo;
+		this.channelName = channelName;
 		this.channelCreater = channelCreater;
 		this.channelXPath = channelXPath;
 		this.urls = new ArrayList<>();

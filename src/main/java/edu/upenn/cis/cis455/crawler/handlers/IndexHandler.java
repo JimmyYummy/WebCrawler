@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import edu.upenn.cis.cis455.model.User;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 import spark.HaltException;
 import spark.Request;
@@ -22,12 +23,17 @@ public class IndexHandler implements Route {
 
 	@Override
 	public String handle(Request req, Response resp) throws HaltException {
+		logger.debug("Received request on index route");
+		logger.debug("getting channel infos");
 		List<List<String>> channelInfos = db.getChannelInfos();
-		
+		logger.debug("generating index.html");
+		resp.type("text/html");
 		StringBuilder sb = new StringBuilder();
 		sb.append("<!DOCTYPE html><html lang=\"en\">");
 		sb.append("<body>");
-		
+		User user = (User) req.session().attribute("userModel");
+		sb.append(String.format("<div>Welcome %s %s.</div>", user.getFirstName(), user.getLastName()));
+		logger.debug("generating divs of channels");
 		sb.append("<ul class=\"channels\">");
 		for (List<String> channelInfo : channelInfos) {
 			appendChannel(channelInfo, sb);
@@ -35,7 +41,7 @@ public class IndexHandler implements Route {
 		sb.append("</ul");
 		sb.append("/body");
 		sb.append("</html>");
-		
+		logger.debug("returning the html to client");
 		return sb.toString();
 	}
 

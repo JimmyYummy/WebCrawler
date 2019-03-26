@@ -1,5 +1,6 @@
 package edu.upenn.cis.cis455.stormLiteCrawler;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
@@ -55,21 +56,31 @@ public class XPathMatchingBolt implements IRichBolt {
 		// TODO Auto-generated method stub
 		// First: clean the previous channel
 		String url = input.getStringByField("url");
-		String doc = input.getStringByField("doc"); 
+		String doc = input.getStringByField("doc");
+		log.debug("Remove the doc from all channels: " + url);
 		db.removeUrlFromAllChannels(url);
 		// Second: generate new channel tags
 		OccurrenceEvent event = null;
+		log.debug("Parsing the doc " + url);
 		try {
 			event = new OccurrenceEvent(doc);
 		} catch (Exception e) {
 			
 		}
-		if (event == null) return;
+		if (event == null) {
+			log.debug("parsing failed, return, url = " + url);
+			return;
+		}
+		
+		log.debug("assigning the doc to channels");
 		String[] expressions = db.getXPathExpressions();
+		
 		parser.setXPaths(expressions);
 		boolean[] results = parser.evaluateEvent(event);
+		log.debug("evaluation result: " + Arrays.toString(results));
 		for (int i = 0; i < results.length; i++) {
 			if (results[i]) {
+				log.debug(String.format("doc [%s] is emmited to channel %d.", url, i));
 				collector.emit(new Values<Object>(i, url));
 			}
 		}

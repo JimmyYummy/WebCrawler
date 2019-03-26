@@ -3,14 +3,19 @@ package edu.upenn.cis.cis455.crawler.handlers;
 import edu.upenn.cis.cis455.model.ChannelMeta;
 
 import static spark.Spark.halt;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import edu.upenn.cis.cis455.storage.StorageInterface;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 
 public class ShowChannelHandler implements Route {
+	private static Logger logger = LogManager.getLogger(ShowChannelHandler.class);
 
-	StorageInterface db;
+	private StorageInterface db;
 
 	public ShowChannelHandler(StorageInterface db) {
 		this.db = db;
@@ -19,10 +24,14 @@ public class ShowChannelHandler implements Route {
 	@Override
 	public Object handle(Request request, Response response) throws Exception {
 		String channelName = request.queryParams("channel");
+		logger.debug("received request on channel: " + channelName);
 		response.type("text/html");
+		logger.debug("getting channel no");
 		int chNo = db.getChannelNo(channelName);
 		if (chNo == -1) halt("channel does not exist");
+		logger.debug("getting channel detail");
 		ChannelMeta ch = db.getChannelDetail(chNo);
+		logger.debug("generating response html");
 		StringBuilder sb = new StringBuilder();
 		sb.append("<!DOCTYPE html><html lang=\"en\">");
 		sb.append("<body>");
@@ -38,7 +47,7 @@ public class ShowChannelHandler implements Route {
 		sb.append("</ul");
 		sb.append("</body>");
 		sb.append("</html>");
-		
+		logger.debug("returning the html to client");
 		return sb.toString();
 	}
 
