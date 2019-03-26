@@ -1,7 +1,5 @@
 package edu.upenn.cis.cis455.stormLiteCrawler;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,12 +12,20 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.upenn.cis.cis455.crawler.CrawlMaster;
 import edu.upenn.cis.cis455.crawler.CrawlerUtils;
 import edu.upenn.cis.cis455.crawler.RobotResolver;
 import edu.upenn.cis.cis455.crawler.info.URLInfo;
 import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
+import edu.upenn.cis.stormlite.Config;
+import edu.upenn.cis.stormlite.LocalCluster;
+import edu.upenn.cis.stormlite.Topology;
+import edu.upenn.cis.stormlite.TopologyBuilder;
+import edu.upenn.cis.stormlite.tuple.Fields;
 
 public class Crawler implements CrawlMaster {
 	private static Logger logger = LogManager.getLogger(Crawler.class);
@@ -28,7 +34,6 @@ public class Crawler implements CrawlMaster {
 	private int maxSize;
 	private int maxCount;
 	private AtomicInteger docCount;
-	@SuppressWarnings("unused")
 	private StorageInterface db;
 	private BlockingQueue<String> q;
 	private int exitedWorkerCount;
@@ -37,6 +42,7 @@ public class Crawler implements CrawlMaster {
 
 	private Set<String> signatures;
 	private Map<String, RobotResolver> robotMap;
+	private LocalCluster cluster;
 
 	public Crawler(String startUrl, StorageInterface db, int size, int count) {
 		// TODO: initialize
@@ -48,9 +54,9 @@ public class Crawler implements CrawlMaster {
 		} catch (InterruptedException e) {
 			logger.catching(Level.DEBUG, e);
 		}
-		
-		//TODO:
-		
+
+		// TODO:
+
 		maxSize = size;
 		maxCount = count;
 		docCount = new AtomicInteger(0);
@@ -69,8 +75,48 @@ public class Crawler implements CrawlMaster {
 	 * Main thread
 	 */
 	public void startCrawling() {
-		
-		logger.debug("" + docCount.get() + " new docs crawled");
+		Config config = new Config();
+
+		UrlSpout spout = new UrlSpout(q, this);
+		DocFetchBolt dfBolt = new DocFetchBolt(this, db);
+		LinkExtractBolt leBolt = new LinkExtractBolt(q);
+		XPathMatchingBolt xpmBolt = new XPathMatchingBolt(db);
+		ChannelDocBolt cdBolt = new ChannelDocBolt(db);
+
+		TopologyBuilder builder = new TopologyBuilder();
+
+		builder.setSpout("urlSpout", spout, 1);
+
+		builder.setBolt("dfBolt", dfBolt, 4).shuffleGrouping("urlSpout");
+		builder.setBolt("leBolt", leBolt, 4).shuffleGrouping("dfBolt");
+		builder.setBolt("xpmBolt", xpmBolt, 4).shuffleGrouping("dfBolt");
+		builder.setBolt("cdBolt", cdBolt, 4).fieldsGrouping("xpmBolt", new Fields("channelNo"));
+
+		cluster = new LocalCluster();
+		Topology topo = builder.createTopology();
+
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			String str = mapper.writeValueAsString(topo);
+
+			logger.debug("The StormLite topology is:\n" + str);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		cluster.submitTopology("crawler", config, builder.createTopology());
+
+		while (!shutDownMainThread()) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				logger.catching(Level.DEBUG, e);
+			}
+		}
+		this.cluster.killTopology("crawler");
+		this.cluster.shutdown();
+
 	}
 
 	/**
@@ -188,11 +234,11 @@ public class Crawler implements CrawlMaster {
 	public synchronized boolean shutDownMainThread() {
 		return exitedWorkerCount == NUM_WORKERS;
 	}
-	
+
 	public int maxSize() {
 		return maxSize;
 	}
-	
+
 	public synchronized boolean couldEmit() {
 		return processingWorkers.get() + docCount.get() < maxCount;
 	}
@@ -206,8 +252,10 @@ public class Crawler implements CrawlMaster {
 
 		logger.debug("Done crawling!");
 		db.closeWithoutFlushing();
+		System.exit(0);
+
 	}
-	
+
 	/**
 	 * Main program: init database, start crawler, wait for it to notify that it is
 	 * done, then close.

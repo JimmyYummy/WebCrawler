@@ -84,5 +84,7 @@ public interface StorageInterface {
 	public int getChannelNo(String name);
 
 	public String getCraweledTime(String url);
+
+	public String[] getXPathExpressions();
 	
 }

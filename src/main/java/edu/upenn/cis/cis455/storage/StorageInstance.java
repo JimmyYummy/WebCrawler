@@ -407,4 +407,15 @@ public class StorageInstance implements StorageInterface {
 				zdt.getMinute(), zdt.getSecond());
 	}
 
+	@Override
+	public String[] getXPathExpressions() {
+		
+		int size = channelMap.size();
+		String[] xpaths = new String[size];
+		for (ChannelMeta ch : channelMap.values()) {
+			xpaths[ch.getChannelNo()] = ch.getChannelXPath();
+		}
+		return xpaths;
+	}
+
 }
