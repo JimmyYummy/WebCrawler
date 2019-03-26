@@ -5,13 +5,13 @@ import java.util.List;
 
 public class PathStep {
 	private String nodeName;
-	private PathStep next;
+	PathStep next;
 	private List<String> texts;
 	private List<String> contains;
 	
 	
 	public PathStep(String nodeName) {
-		this.nodeName = nodeName;
+		this.nodeName = nodeName.replaceAll(" ", "");
 		texts = new ArrayList<>();
 		contains = new ArrayList<>();
 	}

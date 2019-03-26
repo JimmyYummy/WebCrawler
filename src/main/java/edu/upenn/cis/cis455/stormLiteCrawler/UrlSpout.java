@@ -38,10 +38,13 @@ public class UrlSpout implements IRichSpout {
 	 * This is a simple file reader for words.txt
 	 */
 
-	BlockingQueue<String> q;
+	private BlockingQueue<String> q;
+	private Crawler c;
 
-	public UrlSpout() {
+	public UrlSpout(BlockingQueue<String> q, Crawler c) {
 		log.debug("Starting spout");
+		this.q = q;
+		this.c = c;
 	}
 
 	/**
@@ -77,6 +80,7 @@ public class UrlSpout implements IRichSpout {
 			}
 			if (url != null) {
 				log.debug(getExecutorId() + " emitting " + url);
+				while (!c.couldEmit());
 				this.collector.emit(new Values<Object>(url));
 			}
 		}

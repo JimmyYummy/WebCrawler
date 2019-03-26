@@ -12,7 +12,7 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class XPathEngineFactory {
 	public static XPathEngine getXPathEngine() {
-		return null;
+		return new XPathEngineImpl();
 	}
 	
 	public static DefaultHandler getSAXHandler() {

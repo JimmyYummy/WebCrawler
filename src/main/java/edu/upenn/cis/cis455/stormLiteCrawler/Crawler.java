@@ -1,4 +1,4 @@
-package edu.upenn.cis.cis455.crawler;
+package edu.upenn.cis.cis455.stormLiteCrawler;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -191,6 +191,10 @@ public class Crawler implements CrawlMaster {
 	
 	public int maxSize() {
 		return maxSize;
+	}
+	
+	public synchronized boolean couldEmit() {
+		return processingWorkers.get() + docCount.get() < maxCount;
 	}
 
 	public static void crawl(String startUrl, StorageInterface db, int size, int count) {
