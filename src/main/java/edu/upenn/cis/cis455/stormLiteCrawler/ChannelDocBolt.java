@@ -17,16 +17,16 @@ import edu.upenn.cis.stormlite.tuple.Tuple;
 
 public class ChannelDocBolt implements IRichBolt {
 	static Logger log = LogManager.getLogger(ChannelDocBolt.class);
-	
+
 	Fields myFields = new Fields();
-	
+
 	StorageInterface db;
 
-    /**
-     * To make it easier to debug: we have a unique ID for each
-     * instance of the PrintBolt, aka each "executor"
-     */
-    String executorId = UUID.randomUUID().toString();
+	/**
+	 * To make it easier to debug: we have a unique ID for each instance of the
+	 * PrintBolt, aka each "executor"
+	 */
+	String executorId = UUID.randomUUID().toString();
 
 	@Override
 	public void cleanup() {

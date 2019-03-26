@@ -38,10 +38,11 @@ public class ShowChannelHandler implements Route {
 		sb.append("<div class=\"channelheader\">");
 		sb.append("Channel name: " + ch.getChannelName());
 		sb.append(" created by " + ch.getChannelCreater());
-		sb.append("</div");
+		sb.append("</div>");
 		
 		sb.append("<ul class=\"docs\">");
 		for (String url : ch.getUrls()) {
+			logger.debug("Getting url doc: " + url);
 			appendDoc(url, sb);
 		}
 		sb.append("</ul");

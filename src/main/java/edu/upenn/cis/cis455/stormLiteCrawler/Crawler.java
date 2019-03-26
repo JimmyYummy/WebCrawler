@@ -91,7 +91,7 @@ public class Crawler implements CrawlMaster, Serializable {
 		builder.setBolt("dfBolt", dfBolt, 1).shuffleGrouping("urlSpout");
 		builder.setBolt("leBolt", leBolt, 2).shuffleGrouping("dfBolt");
 		builder.setBolt("xpmBolt", xpmBolt, 2).shuffleGrouping("dfBolt");
-		builder.setBolt("cdBolt", cdBolt, 2).fieldsGrouping("xpmBolt", new Fields("channelNo"));
+		builder.setBolt("cdBolt", cdBolt, 2).shuffleGrouping("xpmBolt");
 
 		cluster = new LocalCluster();
 		Topology topo = builder.createTopology();

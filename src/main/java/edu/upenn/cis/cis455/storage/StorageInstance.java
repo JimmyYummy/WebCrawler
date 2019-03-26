@@ -342,16 +342,21 @@ public class StorageInstance implements StorageInterface {
 		if (ch == null)
 			return;
 		ch.getUrls().add(url);
+		channelMap.put(channelNo, ch);
 	}
 
 	@Override
 	public void removeUrlFromAllChannels(String url) {
 		for (ChannelMeta ch : channelMap.values()) {
 			Iterator<String> iter = ch.getUrls().iterator();
+			boolean removed = false;
 			while (iter.hasNext()) {
-				if (iter.next().equals(url))
+				if (iter.next().equals(url)) {
+					removed = true;
 					iter.remove();
+				}
 			}
+			if (removed) channelMap.put(ch.getChannelNo(), ch);
 		}
 	}
 
@@ -402,7 +407,7 @@ public class StorageInstance implements StorageInterface {
 	public String getCraweledTime(String url) {
 		URLDetail ud = urlMap.get(url);
 		long epochSec = ud.getEpochSecond();
-		ZonedDateTime zdt = Instant.ofEpochSecond(epochSec, 0).atZone(ZoneId.of("EST"));
+		ZonedDateTime zdt = Instant.ofEpochSecond(epochSec, 0).atZone(ZoneId.of("America/New_York"));
 
 		return String.format("%s-%s-%sT%s:%s:%s", zdt.getYear(), zdt.getMonth(), zdt.getDayOfMonth(), zdt.getHour(),
 				zdt.getMinute(), zdt.getSecond());
