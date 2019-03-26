@@ -1,5 +1,6 @@
 package edu.upenn.cis.cis455.stormLiteCrawler;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,9 +28,10 @@ import edu.upenn.cis.stormlite.Topology;
 import edu.upenn.cis.stormlite.TopologyBuilder;
 import edu.upenn.cis.stormlite.tuple.Fields;
 
-public class Crawler implements CrawlMaster {
+public class Crawler implements CrawlMaster, Serializable {
 	private static Logger logger = LogManager.getLogger(Crawler.class);
 	static final int NUM_WORKERS = 10;
+	private static Crawler crawler;
 
 	private int maxSize;
 	private int maxCount;
@@ -56,7 +58,7 @@ public class Crawler implements CrawlMaster {
 		}
 
 		// TODO:
-
+		this.db = db;
 		maxSize = size;
 		maxCount = count;
 		docCount = new AtomicInteger(0);
@@ -77,20 +79,20 @@ public class Crawler implements CrawlMaster {
 	public void startCrawling() {
 		Config config = new Config();
 
-		UrlSpout spout = new UrlSpout(q, this);
-		DocFetchBolt dfBolt = new DocFetchBolt(this, db);
-		LinkExtractBolt leBolt = new LinkExtractBolt(q);
-		XPathMatchingBolt xpmBolt = new XPathMatchingBolt(db);
-		ChannelDocBolt cdBolt = new ChannelDocBolt(db);
+		UrlSpout spout = new UrlSpout();
+		DocFetchBolt dfBolt = new DocFetchBolt();
+		LinkExtractBolt leBolt = new LinkExtractBolt();
+		XPathMatchingBolt xpmBolt = new XPathMatchingBolt();
+		ChannelDocBolt cdBolt = new ChannelDocBolt();
 
 		TopologyBuilder builder = new TopologyBuilder();
 
 		builder.setSpout("urlSpout", spout, 1);
 
-		builder.setBolt("dfBolt", dfBolt, 4).shuffleGrouping("urlSpout");
-		builder.setBolt("leBolt", leBolt, 4).shuffleGrouping("dfBolt");
-		builder.setBolt("xpmBolt", xpmBolt, 4).shuffleGrouping("dfBolt");
-		builder.setBolt("cdBolt", cdBolt, 4).fieldsGrouping("xpmBolt", new Fields("channelNo"));
+		builder.setBolt("dfBolt", dfBolt, 1).shuffleGrouping("urlSpout");
+		builder.setBolt("leBolt", leBolt, 1).shuffleGrouping("dfBolt");
+		builder.setBolt("xpmBolt", xpmBolt, 1).shuffleGrouping("dfBolt");
+		builder.setBolt("cdBolt", cdBolt, 1).fieldsGrouping("xpmBolt", new Fields("channelNo"));
 
 		cluster = new LocalCluster();
 		Topology topo = builder.createTopology();
@@ -222,6 +224,16 @@ public class Crawler implements CrawlMaster {
 			processingWorkers.decrementAndGet();
 	}
 
+	public synchronized StorageInterface getDB() {
+		if (db == null) throw new IllegalStateException();
+		return this.db;
+	}
+	
+	public synchronized BlockingQueue<String> getBlockingQueue() {
+		if (q == null) throw new IllegalStateException();
+		return this.q;
+	}
+	
 	/**
 	 * Workers should call this when they exit, so the master knows when it can shut
 	 * down
@@ -232,7 +244,7 @@ public class Crawler implements CrawlMaster {
 	}
 
 	public synchronized boolean shutDownMainThread() {
-		return exitedWorkerCount == NUM_WORKERS;
+		return q.size() == 0 && workingWorkers.get() == 0;
 	}
 
 	public int maxSize() {
@@ -245,7 +257,7 @@ public class Crawler implements CrawlMaster {
 
 	public static void crawl(String startUrl, StorageInterface db, int size, int count) {
 
-		Crawler crawler = new Crawler(startUrl, db, size, count);
+		crawler = new Crawler(startUrl, db, size, count);
 
 		logger.debug("Starting crawl of " + count + " documents, starting at " + startUrl);
 		crawler.startCrawling();
@@ -276,5 +288,10 @@ public class Crawler implements CrawlMaster {
 
 		StorageInterface db = StorageFactory.getDatabaseInstance(envPath);
 		crawl(startUrl, db, size, count);
+	}
+	
+	public static synchronized Crawler getCrawler() {
+		if (crawler == null) throw new IllegalStateException();
+		return crawler;
 	}
 }

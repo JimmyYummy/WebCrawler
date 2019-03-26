@@ -50,19 +50,16 @@ public class DocFetchBolt implements IRichBolt {
 	 */
 	private OutputCollector collector;
 
-	public DocFetchBolt(Crawler c, StorageInterface db) {
-		this.c = c;
-		this.db = db;
-		working = false;
-		processing = false;
-	}
-
 	/**
 	 * Initialization, just saves the output stream destination
 	 */
 	@Override
 	public void prepare(Map<String, String> stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;
+		this.c = Crawler.getCrawler();
+		this.db = c.getDB();
+		working = false;
+		processing = false;
 	}
 
 	/**
@@ -231,7 +228,7 @@ public class DocFetchBolt implements IRichBolt {
 		return schema;
 	}
 
-	private synchronized void setProcessing(boolean b) {
+	public synchronized void setProcessing(boolean b) {
 		if (this.processing != b) {
 			c.setProcessing(b);
 		}
@@ -243,14 +240,14 @@ public class DocFetchBolt implements IRichBolt {
 		return working;
 	}
 
-	private synchronized void setWorking(boolean b) {
+	public synchronized void setWorking(boolean b) {
 		if (this.working != b) {
 			c.setWorking(b);
 		}
 		this.working = b;
 	}
 
-	private static HttpURLConnection createConnection(String urlStr, boolean isSecure, String method) {
+	public static HttpURLConnection createConnection(String urlStr, boolean isSecure, String method) {
 
 		URL url = null;
 		try {
@@ -274,7 +271,7 @@ public class DocFetchBolt implements IRichBolt {
 		return null;
 	}
 
-	private String readContent(HttpURLConnection conn) throws IOException {
+	public String readContent(HttpURLConnection conn) throws IOException {
 		BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 		int size = conn.getContentLength();
 		if (size == -1)

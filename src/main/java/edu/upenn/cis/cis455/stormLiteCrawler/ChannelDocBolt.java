@@ -28,10 +28,6 @@ public class ChannelDocBolt implements IRichBolt {
      */
     String executorId = UUID.randomUUID().toString();
 
-    public ChannelDocBolt(StorageInterface db) {
-    	this.db = db;
-    }
-    
 	@Override
 	public void cleanup() {
 		// Do nothing
@@ -46,6 +42,7 @@ public class ChannelDocBolt implements IRichBolt {
 	@Override
 	public void prepare(Map<String, String> stormConf, TopologyContext context, OutputCollector collector) {
 		// Do nothing
+		this.db = Crawler.getCrawler().getDB();
 	}
 
 	@Override

@@ -34,11 +34,6 @@ public class XPathMatchingBolt implements IRichBolt {
     private StorageInterface db;
     private XPathEngine parser;
     
-    public XPathMatchingBolt(StorageInterface db) {
-    	this.db = db;
-    	this.parser = XPathEngineFactory.getXPathEngine();
-    }
-    
 	@Override
 	public String getExecutorId() {
 		return executorId;
@@ -84,6 +79,8 @@ public class XPathMatchingBolt implements IRichBolt {
 	@Override
 	public void prepare(Map<String, String> stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;
+		this.db = Crawler.getCrawler().getDB();
+    	this.parser = XPathEngineFactory.getXPathEngine();
 	}
 
 	@Override

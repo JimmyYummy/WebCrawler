@@ -34,19 +34,11 @@ public class LinkExtractBolt implements IRichBolt {
 	String executorId = UUID.randomUUID().toString();
 
 	/**
-	 * This is where we send our output stream
-	 */
-
-	public LinkExtractBolt(BlockingQueue<String> q) {
-		// at least it need to hold crawler
-		this.q = q;
-	}
-
-	/**
 	 * Initialization, just saves the output stream destination
 	 */
 	@Override
 	public void prepare(Map<String, String> stormConf, TopologyContext context, OutputCollector collector) {
+		this.q = Crawler.getCrawler().getBlockingQueue();
 	}
 
 	/**

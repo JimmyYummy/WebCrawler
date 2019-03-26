@@ -9,7 +9,7 @@ import org.jsoup.nodes.Node;
 import edu.upenn.cis.cis455.model.OccurrenceEvent;
 
 public class XPathEngineImpl implements XPathEngine {
-	private static PathStep invalidIndicator = new PathStep(null);
+	private static PathStep invalidIndicator = new PathStep("");
 	private PathStep[] heads;
 	private boolean[] isValidPaths;
 	private int len;

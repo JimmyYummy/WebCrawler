@@ -41,11 +41,11 @@ public class UrlSpout implements IRichSpout {
 	private BlockingQueue<String> q;
 	private Crawler c;
 
-	public UrlSpout(BlockingQueue<String> q, Crawler c) {
-		log.debug("Starting spout");
-		this.q = q;
-		this.c = c;
-	}
+//	public UrlSpout(BlockingQueue<String> q, Crawler c) {
+//		log.debug("Starting spout");
+//		this.q = q;
+//		this.c = c;
+//	}
 
 	/**
 	 * Initializes the instance of the spout (note that there can be multiple
@@ -54,7 +54,9 @@ public class UrlSpout implements IRichSpout {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
-
+		this.collector = collector;
+		c = Crawler.getCrawler();
+		q = c.getBlockingQueue();
 	}
 
 	/**
