@@ -11,8 +11,9 @@ import org.junit.Test;
 
 import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
+import junit.framework.TestCase;
 
-public class UrlSpoutTest {
+public class UrlSpoutTest extends TestCase {
 	StorageInterface db;
 	
 	@Before

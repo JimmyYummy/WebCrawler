@@ -8,8 +8,9 @@ import org.junit.Test;
 
 import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
+import junit.framework.TestCase;
 
-public class CrawlerTest {
+public class CrawlerTest extends TestCase {
 	private String dbPath = "crawl_test_db";
 	private String url = "https://dbappserv.cis.upenn.edu/crawltest/nytimes/Africa.xml";
 	private StorageInterface db = null;

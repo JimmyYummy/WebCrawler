@@ -10,8 +10,9 @@ import org.junit.Test;
 
 import edu.upenn.cis.cis455.model.URLDetail;
 import edu.upenn.cis.cis455.model.User;
+import junit.framework.TestCase;
 
-public class StorageInterfaceTest {
+public class StorageInterfaceTest extends TestCase {
 	private StorageInterface db;
 	@Before
 	public void setUp() throws Exception {

@@ -266,7 +266,7 @@ public class Crawler implements CrawlMaster, Serializable {
 	public static void crawl(String startUrl, StorageInterface db, int size, int count) {
 
 		createCrawler(startUrl, db, size, count);
-
+		if (crawler == null) throw new RuntimeException("exp");
 		logger.debug("Starting crawl of " + count + " documents, starting at " + startUrl);
 		crawler.startCrawling();
 
@@ -281,7 +281,7 @@ public class Crawler implements CrawlMaster, Serializable {
 	 * done, then close.
 	 */
 	public static void main(String args[]) {
-		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.INFO);
+		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.DEBUG);
 		if (args.length < 3 || args.length > 5) {
 			logger.debug(
 					"Usage: Crawler {start URL} {database environment path} {max doc size in MB} {number of files to index}");

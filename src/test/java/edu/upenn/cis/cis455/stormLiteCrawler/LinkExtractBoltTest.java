@@ -13,8 +13,9 @@ import edu.upenn.cis.cis455.storage.StorageFactory;
 import edu.upenn.cis.cis455.storage.StorageInterface;
 import edu.upenn.cis.stormlite.tuple.Fields;
 import edu.upenn.cis.stormlite.tuple.Tuple;
+import junit.framework.TestCase;
 
-public class LinkExtractBoltTest {
+public class LinkExtractBoltTest extends TestCase {
 
 	StorageInterface db;
 

@@ -1,14 +1,13 @@
 package edu.upenn.cis.cis455.xpathengine;
 
-import static org.junit.Assert.*;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import edu.upenn.cis.cis455.model.OccurrenceEvent;
+import junit.framework.TestCase;
 
-public class XPathEngineTest {
+public class XPathEngineTest extends TestCase {
 	private XPathEngine eng;
 
 	@Before
