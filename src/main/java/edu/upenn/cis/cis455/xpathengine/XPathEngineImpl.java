@@ -33,7 +33,7 @@ public class XPathEngineImpl implements XPathEngine {
 				logger.catching(Level.DEBUG, e);
 			}
 			
-			logger.debug(String.format("%dth XPath: %s", i, head.toString()));
+			logger.debug(String.format("%dth XPath: %s", i, head));
 			if (head != null && head != invalidIndicator) {
 				heads[i] = head;
 				isValidPaths[i] = true;
@@ -208,6 +208,7 @@ public class XPathEngineImpl implements XPathEngine {
 					ptr[0]++;
 					return;
 				} else {
+					System.err.println(ptr[0]);
 					throw new IllegalArgumentException("expectiing '[', ill status of stack: " + stack);
 				}
 			} else if (arr[ptr[0]] == '(') {

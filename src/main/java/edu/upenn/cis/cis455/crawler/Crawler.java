@@ -214,7 +214,7 @@ public class Crawler implements CrawlMaster {
 
 	public static void crawl(String startUrl, StorageInterface db, int size, int count) {
 
-		Crawler crawler = new Crawler(startUrl, db, size, count);
+		edu.upenn.cis.cis455.stormLiteCrawler.Crawler crawler = new edu.upenn.cis.cis455.stormLiteCrawler.Crawler(startUrl, db, size, count);
 
 		logger.debug("Starting crawl of " + count + " documents, starting at " + startUrl);
 		crawler.startCrawling();

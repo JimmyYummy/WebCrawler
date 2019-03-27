@@ -89,7 +89,7 @@ public class Crawler implements CrawlMaster, Serializable {
 
 		builder.setBolt("dfBolt", dfBolt, 1).shuffleGrouping("urlSpout");
 		builder.setBolt("leBolt", leBolt, 2).shuffleGrouping("dfBolt");
-		builder.setBolt("xpmBolt", xpmBolt, 2).shuffleGrouping("dfBolt");
+		builder.setBolt("xpmBolt", xpmBolt, 3).shuffleGrouping("dfBolt");
 		builder.setBolt("cdBolt", cdBolt, 2).shuffleGrouping("xpmBolt");
 
 		cluster = new LocalCluster();
@@ -258,10 +258,14 @@ public class Crawler implements CrawlMaster, Serializable {
 	public synchronized boolean couldEmit() {
 		return processingWorkers.get() + docCount.get() < maxCount;
 	}
+	
+	public static void createCrawler(String startUrl, StorageInterface db, int size, int count) {
+		crawler = new Crawler(startUrl, db, size, count);
+	}
 
 	public static void crawl(String startUrl, StorageInterface db, int size, int count) {
 
-		crawler = new Crawler(startUrl, db, size, count);
+		createCrawler(startUrl, db, size, count);
 
 		logger.debug("Starting crawl of " + count + " documents, starting at " + startUrl);
 		crawler.startCrawling();
@@ -277,7 +281,7 @@ public class Crawler implements CrawlMaster, Serializable {
 	 * done, then close.
 	 */
 	public static void main(String args[]) {
-		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.DEBUG);
+		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.INFO);
 		if (args.length < 3 || args.length > 5) {
 			logger.debug(
 					"Usage: Crawler {start URL} {database environment path} {max doc size in MB} {number of files to index}");
