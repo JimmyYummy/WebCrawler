@@ -78,6 +78,7 @@ public class XPathMatchingBolt implements IRichBolt {
 		parser.setXPaths(expressions);
 		boolean[] results = parser.evaluateEvent(event);
 		log.debug("evaluation result: " + Arrays.toString(results));
+		// send the doc,channel for each matched channel
 		for (int i = 0; i < results.length; i++) {
 			if (results[i]) {
 				log.debug(String.format("doc [%s] is emmited to channel %d.", url, i));

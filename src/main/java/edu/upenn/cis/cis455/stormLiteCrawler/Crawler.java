@@ -76,6 +76,7 @@ public class Crawler implements CrawlMaster, Serializable {
 	 * Main thread
 	 */
 	public void startCrawling() {
+		// create the stromLite
 		Config config = new Config();
 		UrlSpout spout = new UrlSpout();
 		DocFetchBolt dfBolt = new DocFetchBolt();
@@ -103,8 +104,10 @@ public class Crawler implements CrawlMaster, Serializable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		// run StormLite
 		cluster.submitTopology("crawler", config, topo);
 
+		// check close condition
 		while (!shutDownMainThread()) {
 			try {
 				Thread.sleep(10);
@@ -155,6 +158,12 @@ public class Crawler implements CrawlMaster, Serializable {
 		return robotMap.get(urlName).isOKtoParse(url.getFilePath());
 	}
 
+	/**
+	 * check if the doc's length and type meet the requirements
+	 * @param length
+	 * @param type
+	 * @return
+	 */
 	public boolean isQualifiedDoc(int length, String type) {
 		if (length > maxSize) {
 			logger.debug("too large");
@@ -281,7 +290,9 @@ public class Crawler implements CrawlMaster, Serializable {
 	 * done, then close.
 	 */
 	public static void main(String args[]) {
-		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.DEBUG);
+		org.apache.logging.log4j.core.config.Configurator.setLevel("edu.upenn.cis.cis455", Level.INFO);
+		
+		//read the parameters
 		if (args.length < 3 || args.length > 5) {
 			logger.debug(
 					"Usage: Crawler {start URL} {database environment path} {max doc size in MB} {number of files to index}");
@@ -295,6 +306,8 @@ public class Crawler implements CrawlMaster, Serializable {
 		int count = args.length == 4 ? Integer.valueOf(args[3]) : 100;
 
 		StorageInterface db = StorageFactory.getDatabaseInstance(envPath);
+		
+		// do the crawling
 		crawl(startUrl, db, size, count);
 	}
 	

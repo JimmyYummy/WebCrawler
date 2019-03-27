@@ -68,6 +68,8 @@ public class DocFetchBolt implements IRichBolt {
 	 */
 	@Override
 	public void execute(Tuple input) {
+		// the while loop will always be broken at the end of the first run,
+		// the while loop is actually a legacy from MS1
 		while (true) {
 			setWorking(true);
 			String urlStr = input.getStringByField("url");

@@ -76,6 +76,7 @@ public class UrlSpout implements IRichSpout {
 //			} catch (InterruptedException e) {
 //				e.printStackTrace();
 //			}
+			// get the next url from the queue
 			while (url == null) {
 				try {
 					url = q.poll(10, TimeUnit.MICROSECONDS);
@@ -85,9 +86,14 @@ public class UrlSpout implements IRichSpout {
 					e.printStackTrace();
 				}
 			}
+			// integrity check
 			if (url != null) {
 				log.debug(getExecutorId() + " emitting " + url);
-				while (!c.couldEmit());
+				// wait until the delay past and the possibility of crawling too many docs is eliminated
+				while (!c.couldEmit()) {
+					if (c.isDone())
+						return;
+				}
 				this.collector.emit(new Values<Object>(url));
 			}
 		}

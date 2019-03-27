@@ -6,6 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * This class is the node of a single linked list, each node represents a step in the XPath 
+ * @author jimmyyummy
+ *
+ */
 public class PathStep {
 	private String nodeName;
 	PathStep next;

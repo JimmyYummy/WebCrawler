@@ -23,21 +23,27 @@ public class IndexHandler implements Route {
 
 	@Override
 	public String handle(Request req, Response resp) throws HaltException {
+		// get the basic infos from db
 		logger.debug("Received request on index route");
 		logger.debug("getting channel infos");
 		List<List<String>> channelInfos = db.getChannelInfos();
 		logger.debug("generating index.html");
+		// compose the html file
 		resp.type("text/html");
 		StringBuilder sb = new StringBuilder();
 		sb.append("<!DOCTYPE html><html lang=\"en\">");
 		sb.append("<body>");
+		// say hello
 		User user = (User) req.session().attribute("userModel");
-		sb.append(String.format("<div>Welcome %s %s.</div>", user.getFirstName(), user.getLastName()));
+		sb.append(String.format("<div>Welcome %s %s.  <a href=\"/logout\">LOGOUT</a></div>", user.getFirstName(), user.getLastName()));
+		// list channels
 		logger.debug("generating divs of channels");
 		sb.append("<ul class=\"channels\">");
+		// list each channel
 		for (List<String> channelInfo : channelInfos) {
 			appendChannel(channelInfo, sb);
 		}
+		// close blocks
 		sb.append("</ul");
 		sb.append("/body");
 		sb.append("</html>");

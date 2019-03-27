@@ -36,6 +36,7 @@ public class ChannelDocBolt implements IRichBolt {
 
 	@Override
 	public void execute(Tuple input) {
+		// get the params and write the mapping to db
 		String url = input.getStringByField("url");
 		int channelNo = input.getIntegerByField("channelNo");
 		log.debug(String.format("adding doc [%s] to channel [%d].", url, channelNo));

@@ -23,15 +23,19 @@ public class CreateChannelHandler implements Route {
 
 	@Override
 	public Object handle(Request request, Response response) throws Exception {
+		// read in the input parameters
 		String channelName = request.params("name");
 		String channelPath = request.queryParams("xpath");
 		if (channelPath == null) halt(400, "XPath not specified");
 		logger.debug("Reveived create channel request with name: " + channelName + " XPath: " + channelPath);
+		// get the user's name from the request
 		User user = (User) request.session().attribute("userModel");
 		response.header("content-type", "text/html");
 		String channelCreater = user.getFirstName() + " " + user.getLastName();
+		// integrity check
 		if (channelName == null || channelPath == null)
 			halt(400, "wrong request format");
+		// write the channel to the db
 		logger.debug("adding the channel");
 		if (db.addChannel(channelName, channelCreater, channelPath)) {
 			logger.debug("channel added");

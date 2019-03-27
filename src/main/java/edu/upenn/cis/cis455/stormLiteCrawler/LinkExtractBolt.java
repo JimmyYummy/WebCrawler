@@ -48,6 +48,7 @@ public class LinkExtractBolt implements IRichBolt {
 	 */
 	@Override
 	public void execute(Tuple input) {
+		// check if the doc is a html
 		String docType = input.getStringByField("doctype");
 		log.debug("new input received, type: " + docType);
 		if ("html".equals(docType)) {

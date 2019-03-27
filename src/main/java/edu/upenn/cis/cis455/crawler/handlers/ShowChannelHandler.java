@@ -23,14 +23,18 @@ public class ShowChannelHandler implements Route {
 	
 	@Override
 	public Object handle(Request request, Response response) throws Exception {
+		// get the channel name
 		String channelName = request.queryParams("channel");
 		logger.debug("received request on channel: " + channelName);
 		response.type("text/html");
+		// map the channel name to the channel number
 		logger.debug("getting channel no");
 		int chNo = db.getChannelNo(channelName);
 		if (chNo == -1) halt("channel does not exist");
 		logger.debug("getting channel detail");
+		// get the channel detail using the number
 		ChannelMeta ch = db.getChannelDetail(chNo);
+		// write the html file
 		logger.debug("generating response html");
 		StringBuilder sb = new StringBuilder();
 		sb.append("<!DOCTYPE html><html lang=\"en\">");
@@ -41,10 +45,12 @@ public class ShowChannelHandler implements Route {
 		sb.append("</div>");
 		
 		sb.append("<ul class=\"docs\">");
+		// write each xml file to the channel
 		for (String url : ch.getUrls()) {
 			logger.debug("Getting url doc: " + url);
 			appendDoc(url, sb);
 		}
+		// close blocks
 		sb.append("</ul");
 		sb.append("</body>");
 		sb.append("</html>");
