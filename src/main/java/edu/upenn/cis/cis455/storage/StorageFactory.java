@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 public class StorageFactory {
 	private static Logger logger = LogManager.getLogger(StorageFactory.class);
 
-	static StorageInterface storage = null;
+	static volatile StorageInterface storage = null;
 	
     public static synchronized StorageInterface getDatabaseInstance(String directory) {
 	// TODO: factory object, instantiate your storage server
